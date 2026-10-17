@@ -19,11 +19,17 @@ class Settings(BaseSettings):
     def assemble_async_db_url(cls, v: str) -> str:
         if isinstance(v, str):
             if v.startswith("postgres://"):
-                return v.replace("postgres://", "postgresql+asyncpg://", 1)
-            if v.startswith("postgresql://") and not v.startswith(
+                v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and not v.startswith(
                 "postgresql+asyncpg://"
             ):
-                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+                v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            if "sslmode=" in v:
+                v = v.replace("sslmode=", "ssl=")
+            if "&channel_binding=require" in v:
+                v = v.replace("&channel_binding=require", "")
+            elif "channel_binding=require&" in v:
+                v = v.replace("channel_binding=require&", "")
         return v
 
     model_config = SettingsConfigDict(
