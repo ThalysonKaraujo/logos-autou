@@ -1,3 +1,4 @@
+from app.schemas.error import ErrorResponse
 from app.schemas.incident import (
     IncidentBase,
     IncidentCategory,
@@ -12,6 +13,7 @@ from app.schemas.incident import (
 )
 
 __all__ = [
+    "ErrorResponse",
     "IncidentBase",
     "IncidentCategory",
     "IncidentCreate",
