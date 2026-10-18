@@ -8,6 +8,7 @@ from app.core.exceptions import register_exception_handlers
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
+    description="API de Gestão de Incidentes em Tempo Real para Operações Logísticas AutoU com Controle de Concorrência Otimista (OCC)",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",

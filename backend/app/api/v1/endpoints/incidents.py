@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.repositories.incident_repository import IncidentRepository
+from app.schemas.error import ErrorResponse
 from app.schemas.incident import (
     IncidentCategory,
     IncidentCreate,
@@ -35,6 +36,13 @@ IncidentServiceDep = Annotated[IncidentService, Depends(get_incident_service)]
     "",
     response_model=IncidentResponse,
     status_code=status.HTTP_201_CREATED,
+    summary="Criar novo incidente",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Dados da requisição inválidos",
+        },
+    },
 )
 async def create_incident_endpoint(
     payload: IncidentCreate,
@@ -48,6 +56,13 @@ async def create_incident_endpoint(
     "",
     response_model=IncidentListResponse,
     status_code=status.HTTP_200_OK,
+    summary="Listar incidentes com filtros e paginação",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Parâmetros de consulta inválidos",
+        },
+    },
 )
 async def list_incidents_endpoint(
     service: IncidentServiceDep,
@@ -76,6 +91,17 @@ async def list_incidents_endpoint(
     "/{incident_id}",
     response_model=IncidentDetailResponse,
     status_code=status.HTTP_200_OK,
+    summary="Obter detalhes e histórico de um incidente",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Identificador do incidente inválido",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorResponse,
+            "description": "Incidente não encontrado",
+        },
+    },
 )
 async def get_incident_by_id_endpoint(
     incident_id: UUID,
@@ -89,6 +115,21 @@ async def get_incident_by_id_endpoint(
     "/{incident_id}/status",
     response_model=IncidentDetailResponse,
     status_code=status.HTTP_200_OK,
+    summary="Atualizar status do incidente com controle de concorrência otimista (OCC)",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Transição de status inválida ou dados incorretos",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorResponse,
+            "description": "Incidente não encontrado",
+        },
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorResponse,
+            "description": "Conflito de versão (OCC) - incidente alterado concorrentemente",
+        },
+    },
 )
 async def update_incident_status_endpoint(
     incident_id: UUID,
