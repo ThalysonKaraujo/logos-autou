@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -12,6 +13,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+register_exception_handlers(app)
+
 
 app.add_middleware(
     CORSMiddleware,
