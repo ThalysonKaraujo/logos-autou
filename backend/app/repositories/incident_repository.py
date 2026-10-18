@@ -1,4 +1,8 @@
+from uuid import UUID
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.incident import Incident, IncidentHistory
 
@@ -19,3 +23,12 @@ class IncidentRepository:
         await self.db.commit()
         await self.db.refresh(incident)
         return incident
+
+    async def get_by_id(self, incident_id: UUID) -> Incident | None:
+        statement = (
+            select(Incident)
+            .options(selectinload(Incident.history))
+            .where(Incident.id == incident_id)
+        )
+        result = await self.db.execute(statement)
+        return result.scalar_one_or_none()

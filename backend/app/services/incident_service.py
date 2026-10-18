@@ -1,3 +1,7 @@
+from uuid import UUID
+
+from fastapi import HTTPException, status
+
 from app.models.incident import Incident, IncidentHistory
 from app.repositories.incident_repository import IncidentRepository
 from app.schemas.incident import IncidentCreate, IncidentStatus
@@ -31,3 +35,12 @@ class IncidentService:
         return await self.repository.create(
             incident=incident, history_entry=history_entry
         )
+
+    async def get_incident_by_id(self, incident_id: UUID) -> Incident:
+        incident = await self.repository.get_by_id(incident_id=incident_id)
+        if incident is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Incidente não encontrado",
+            )
+        return incident
