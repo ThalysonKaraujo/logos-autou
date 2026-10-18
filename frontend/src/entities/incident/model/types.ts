@@ -71,7 +71,8 @@ export interface IncidentCreateInput {
 
 export interface IncidentStatusUpdateInput {
 	status: IncidentStatus;
-	version: number;
+	expected_version: number;
+	version?: number;
 	analyst_name: string;
 	notes?: string | null;
 }

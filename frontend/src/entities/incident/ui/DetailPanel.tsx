@@ -22,6 +22,7 @@ export function DetailPanel({
 	const { data: incident, isLoading, isError } = useIncidentDetail(incidentId);
 	const updateStatusMutation = useUpdateIncidentStatus();
 	const [notes, setNotes] = useState("");
+	const [actionError, setActionError] = useState<string | null>(null);
 
 	if (!incidentId) {
 		return (
@@ -66,12 +67,14 @@ export function DetailPanel({
 
 	const handleStatusChange = async (newStatus: IncidentStatus) => {
 		if (incident.status === newStatus) return;
+		setActionError(null);
 
 		try {
 			await updateStatusMutation.mutateAsync({
 				incidentId: incident.id,
 				payload: {
 					status: newStatus,
+					expected_version: incident.version,
 					version: incident.version,
 					analyst_name: operator,
 					notes: notes.trim() || null,
@@ -79,9 +82,15 @@ export function DetailPanel({
 			});
 			setNotes("");
 		} catch (error: unknown) {
-			const err = error as { status?: number; requestId?: string | null };
+			const err = error as {
+				status?: number;
+				requestId?: string | null;
+				message?: string;
+			};
 			if (err?.status === 409) {
 				onConflictDetected?.(err.requestId || null);
+			} else {
+				setActionError(err?.message || "Erro ao atualizar status do chamado.");
 			}
 		}
 	};
@@ -178,6 +187,12 @@ export function DetailPanel({
 						placeholder="Nota operacional de despacho (opcional)..."
 						className="w-full bg-[#18181b] border border-[#27272a] rounded px-3 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-500"
 					/>
+
+					{actionError && (
+						<div className="bg-rose-950/40 border border-rose-800/60 rounded px-2.5 py-1.5 text-xs text-rose-300">
+							{actionError}
+						</div>
+					)}
 
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
 						<button
