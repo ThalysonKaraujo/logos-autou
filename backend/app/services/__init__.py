@@ -1,3 +1,3 @@
-from app.services.incident_service import create_incident
+from app.services.incident_service import IncidentService
 
-__all__ = ["create_incident"]
+__all__ = ["IncidentService"]
