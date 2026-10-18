@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useIncidents } from "@/entities/incident/api";
 import type {
 	IncidentCriticality,
 	IncidentFilters,
@@ -21,8 +22,27 @@ export function CockpitPage() {
 	);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+	const baseFilters: IncidentFilters = useMemo(() => {
+		const f: IncidentFilters = { limit: 100 };
+		if (status !== "ALL") f.status = status;
+		if (search.trim()) f.search = search.trim();
+		return f;
+	}, [status, search]);
+
+	const { data: baseIncidents } = useIncidents(baseFilters);
+
+	const counts = useMemo(() => {
+		const items = baseIncidents?.items || [];
+		return {
+			all: baseIncidents?.total ?? items.length,
+			alta: items.filter((i) => i.criticality === "Alta").length,
+			media: items.filter((i) => i.criticality === "Média").length,
+			baixa: items.filter((i) => i.criticality === "Baixa").length,
+		};
+	}, [baseIncidents]);
+
 	const filters: IncidentFilters = useMemo(() => {
-		const f: IncidentFilters = {};
+		const f: IncidentFilters = { limit: 100 };
 		if (criticality !== "ALL") f.criticality = criticality;
 		if (status !== "ALL") f.status = status;
 		if (search.trim()) f.search = search.trim();
@@ -75,6 +95,7 @@ export function CockpitPage() {
 				onCriticalityChange={setCriticality}
 				selectedStatus={status}
 				onStatusChange={setStatus}
+				counts={counts}
 			/>
 
 			<main className="flex-1 flex gap-2.5 min-h-[560px]">

@@ -111,7 +111,15 @@ export function DetailPanel({
 					<PlateBadge plate={incident.truck_plate} />
 					<div className="flex items-center gap-1.5">
 						<CriticalityDot criticality={incident.criticality} />
-						<span className="text-xs text-zinc-400 font-medium">
+						<span
+							className={`text-xs font-medium ${
+								incident.criticality === "Alta"
+									? "text-rose-400"
+									: incident.criticality === "Média"
+										? "text-amber-400"
+										: "text-emerald-400"
+							}`}
+						>
 							{incident.criticality.toUpperCase()}
 						</span>
 					</div>

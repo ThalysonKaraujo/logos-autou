@@ -43,7 +43,15 @@ export function IncidentCard({
 				<div className="flex items-center gap-2">
 					<CriticalityDot criticality={incident.criticality} />
 					<PlateBadge plate={incident.truck_plate} />
-					<span className="text-zinc-500 text-xs hidden sm:inline">
+					<span
+						className={`text-xs hidden sm:inline font-medium ${
+							incident.criticality === "Alta"
+								? "text-rose-400"
+								: incident.criticality === "Média"
+									? "text-amber-400"
+									: "text-emerald-400"
+						}`}
+					>
 						{incident.criticality}
 					</span>
 				</div>

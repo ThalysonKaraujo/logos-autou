@@ -14,7 +14,7 @@ export function CriticalityDot({
 			? "bg-red-500"
 			: criticality === "Média"
 				? "bg-amber-500"
-				: "bg-zinc-500";
+				: "bg-emerald-500";
 
 	return (
 		<span
