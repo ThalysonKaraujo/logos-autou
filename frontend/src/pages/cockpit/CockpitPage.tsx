@@ -5,6 +5,7 @@ import type {
 	IncidentStatus,
 } from "@/entities/incident/model/types";
 import { DetailPanel, IncidentList } from "@/entities/incident/ui";
+import { CreateIncidentModal } from "@/features/create-incident";
 import { TriageFilters } from "@/features/triage-filters";
 import { Topbar } from "@/widgets/topbar";
 
@@ -18,6 +19,7 @@ export function CockpitPage() {
 	const [occConflictTraceId, setOccConflictTraceId] = useState<string | null>(
 		null,
 	);
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
 	const filters: IncidentFilters = useMemo(() => {
 		const f: IncidentFilters = {};
@@ -30,9 +32,7 @@ export function CockpitPage() {
 	return (
 		<div className="min-h-screen bg-[#09090b] text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans">
 			<Topbar
-				onOpenNewIncident={() => {
-					alert("O modal de criação rápida será conectado na Fase 4!");
-				}}
+				onOpenNewIncident={() => setIsCreateModalOpen(true)}
 				onSimulateOCC={() => {
 					setOccConflictTraceId("occ-simulated-9842a1b");
 				}}
@@ -113,6 +113,15 @@ export function CockpitPage() {
 					/>
 				</section>
 			</main>
+
+			<CreateIncidentModal
+				isOpen={isCreateModalOpen}
+				onClose={() => setIsCreateModalOpen(false)}
+				onSuccess={(incident) => {
+					setSelectedId(incident.id);
+					setIsCreateModalOpen(false);
+				}}
+			/>
 		</div>
 	);
 }

@@ -90,9 +90,7 @@ describe("CreateIncidentModal", () => {
 
 		const plateInput = screen.getByLabelText(/Placa/i);
 		fireEvent.change(plateInput, { target: { value: "INVALID" } });
-
-		const submitButton = screen.getByRole("button", { name: /Criar Chamado/i });
-		fireEvent.click(submitButton);
+		fireEvent.blur(plateInput);
 
 		await waitFor(() => {
 			expect(screen.getByText(/Placa inválida/i)).toBeInTheDocument();
