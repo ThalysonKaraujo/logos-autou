@@ -7,8 +7,9 @@
 		"types": ["vite/client", "@testing-library/jest-dom/vitest"],
 		"allowArbitraryExtensions": true,
 		"skipLibCheck": true,
-
-		/* Bundler mode */
+		"paths": {
+			"@/*": ["./src/*"]
+		},
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
