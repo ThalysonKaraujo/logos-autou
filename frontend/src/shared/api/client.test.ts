@@ -2,19 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, apiClient } from "./client";
 
 describe("apiClient", () => {
-	const originalFetch = global.fetch;
+	const originalFetch = globalThis.fetch;
 
 	beforeEach(() => {
 		vi.restoreAllMocks();
 	});
 
 	afterEach(() => {
-		global.fetch = originalFetch;
+		globalThis.fetch = originalFetch;
 	});
 
 	it("executes get request and captures x-request-id and x-process-time headers", async () => {
 		const mockPayload = { status: "healthy" };
-		global.fetch = vi.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: true,
 			status: 200,
 			headers: new Headers({
@@ -31,7 +31,7 @@ describe("apiClient", () => {
 		expect(result.requestId).toBe("req-test-uuid-123");
 		expect(result.processTime).toBe("4.20ms");
 
-		expect(global.fetch).toHaveBeenCalledWith(
+		expect(globalThis.fetch).toHaveBeenCalledWith(
 			expect.stringContaining("/health"),
 			expect.objectContaining({
 				method: "GET",
@@ -41,7 +41,7 @@ describe("apiClient", () => {
 	});
 
 	it("propagates custom x-request-id when provided in request options", async () => {
-		global.fetch = vi.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: true,
 			status: 200,
 			headers: new Headers({
@@ -55,7 +55,7 @@ describe("apiClient", () => {
 			requestId: "custom-trace-999",
 		});
 
-		const fetchCall = vi.mocked(global.fetch).mock.calls[0];
+		const fetchCall = vi.mocked(globalThis.fetch).mock.calls[0];
 		const headers = fetchCall[1]?.headers as Headers;
 		expect(headers.get("X-Request-ID")).toBe("custom-trace-999");
 	});
@@ -68,7 +68,7 @@ describe("apiClient", () => {
 			details: { current_version: 3, expected_version: 2 },
 		};
 
-		global.fetch = vi.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: false,
 			status: 409,
 			headers: new Headers({
