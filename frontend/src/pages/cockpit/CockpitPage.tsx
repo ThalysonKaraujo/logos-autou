@@ -10,6 +10,8 @@ import { CreateIncidentModal } from "@/features/create-incident";
 import { TriageFilters } from "@/features/triage-filters";
 import { Topbar } from "@/widgets/topbar";
 
+const PAGE_SIZE = 10;
+
 export function CockpitPage() {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
@@ -21,6 +23,22 @@ export function CockpitPage() {
 		null,
 	);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+	const [page, setPage] = useState(1);
+
+	const handleSearchChange = (val: string) => {
+		setSearch(val);
+		setPage(1);
+	};
+
+	const handleCriticalityChange = (crit: IncidentCriticality | "ALL") => {
+		setCriticality(crit);
+		setPage(1);
+	};
+
+	const handleStatusChange = (st: IncidentStatus | "ALL") => {
+		setStatus(st);
+		setPage(1);
+	};
 
 	const baseFilters: IncidentFilters = useMemo(() => {
 		const f: IncidentFilters = { limit: 100 };
@@ -42,15 +60,22 @@ export function CockpitPage() {
 	}, [baseIncidents]);
 
 	const filters: IncidentFilters = useMemo(() => {
-		const f: IncidentFilters = { limit: 100 };
+		const f: IncidentFilters = {
+			skip: (page - 1) * PAGE_SIZE,
+			limit: PAGE_SIZE,
+		};
 		if (criticality !== "ALL") f.criticality = criticality;
 		if (status !== "ALL") f.status = status;
 		if (search.trim()) f.search = search.trim();
 		return f;
-	}, [criticality, status, search]);
+	}, [criticality, status, search, page]);
+
+	const { data: listData } = useIncidents(filters);
+	const total = listData?.total ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
 	return (
-		<div className="min-h-screen bg-[#09090b] text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans">
+		<div className="min-h-screen lg:h-screen lg:max-h-screen bg-[#09090b] text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans lg:overflow-hidden">
 			<Topbar
 				onOpenNewIncident={() => setIsCreateModalOpen(true)}
 				onSimulateOCC={() => {
@@ -90,21 +115,21 @@ export function CockpitPage() {
 
 			<TriageFilters
 				search={search}
-				onSearchChange={setSearch}
+				onSearchChange={handleSearchChange}
 				selectedCriticality={criticality}
-				onCriticalityChange={setCriticality}
+				onCriticalityChange={handleCriticalityChange}
 				selectedStatus={status}
-				onStatusChange={setStatus}
+				onStatusChange={handleStatusChange}
 				counts={counts}
 			/>
 
-			<main className="flex-1 flex gap-2.5 min-h-[560px]">
+			<main className="flex-1 flex gap-2.5 min-h-0 lg:overflow-hidden">
 				<section
-					className={`w-full lg:w-[430px] shrink-0 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col overflow-hidden ${
+					className={`w-full lg:w-[430px] shrink-0 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col overflow-hidden h-full ${
 						selectedId ? "hidden lg:flex" : "flex"
 					}`}
 				>
-					<div className="px-3 py-2 border-b border-[#27272a] flex items-center justify-between text-zinc-400">
+					<div className="px-3 py-2 border-b border-[#27272a] flex items-center justify-between text-zinc-400 shrink-0">
 						<span className="font-medium text-xs text-zinc-300">
 							Fila de Triagem
 						</span>
@@ -120,10 +145,39 @@ export function CockpitPage() {
 							filters={filters}
 						/>
 					</div>
+
+					<div className="px-3 py-2 border-t border-[#27272a] bg-[#121215] flex items-center justify-between text-xs text-zinc-400 shrink-0">
+						<span className="font-mono text-[11px] text-zinc-500">
+							{total > 0
+								? `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, total)} de ${total}`
+								: "0 chamados"}
+						</span>
+						<div className="flex items-center gap-1.5">
+							<button
+								type="button"
+								disabled={page <= 1}
+								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								className="px-2 py-1 rounded bg-[#18181b] border border-[#27272a] hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 text-[11px] transition-colors"
+							>
+								← Anterior
+							</button>
+							<span className="font-mono text-[11px] text-zinc-400 px-1">
+								{page}/{totalPages}
+							</span>
+							<button
+								type="button"
+								disabled={page >= totalPages}
+								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+								className="px-2 py-1 rounded bg-[#18181b] border border-[#27272a] hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 text-[11px] transition-colors"
+							>
+								Próxima →
+							</button>
+						</div>
+					</div>
 				</section>
 
 				<section
-					className={`flex-1 ${selectedId ? "flex" : "hidden lg:flex"} min-w-0`}
+					className={`flex-1 ${selectedId ? "flex flex-col" : "hidden lg:flex lg:flex-col"} min-w-0 h-full overflow-hidden`}
 				>
 					<DetailPanel
 						incidentId={selectedId}

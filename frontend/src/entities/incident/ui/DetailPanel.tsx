@@ -26,7 +26,7 @@ export function DetailPanel({
 
 	if (!incidentId) {
 		return (
-			<div className="h-full flex flex-col items-center justify-center p-8 text-center text-zinc-500 bg-[#121215] border border-[#27272a] rounded-lg">
+			<div className="w-full h-full flex flex-col items-center justify-center p-8 text-center text-zinc-500 bg-[#121215] border border-[#27272a] rounded-lg">
 				<p className="text-xs font-medium text-zinc-400">
 					Nenhum chamado selecionado
 				</p>
@@ -40,7 +40,7 @@ export function DetailPanel({
 
 	if (isLoading) {
 		return (
-			<div className="p-4 bg-[#121215] border border-[#27272a] rounded-lg h-full">
+			<div className="w-full p-4 bg-[#121215] border border-[#27272a] rounded-lg h-full">
 				<IncidentSkeleton count={3} />
 			</div>
 		);
@@ -48,7 +48,7 @@ export function DetailPanel({
 
 	if (isError || !incident) {
 		return (
-			<div className="p-6 bg-[#121215] border border-red-900/40 rounded-lg text-center space-y-2">
+			<div className="w-full p-6 bg-[#121215] border border-red-900/40 rounded-lg text-center space-y-2">
 				<p className="text-xs text-red-400">
 					Erro ao carregar os detalhes do chamado.
 				</p>
@@ -96,7 +96,7 @@ export function DetailPanel({
 	};
 
 	return (
-		<div className="bg-[#121215] border border-[#27272a] rounded-lg flex flex-col h-full overflow-hidden shadow-xs">
+		<div className="w-full flex-1 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col h-full overflow-hidden shadow-xs">
 			<div className="px-3 py-2.5 sm:px-4 border-b border-[#27272a] flex items-center justify-between gap-2 flex-wrap">
 				<div className="flex items-center gap-2">
 					{onBackToList && (
