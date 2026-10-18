@@ -1,8 +1,8 @@
 import pytest
-from app.core.seed import seed_incidents
 from sqlalchemy import func, select
 
 from app.core.database import AsyncSessionLocal
+from app.core.seed import seed_incidents
 from app.models.incident import Incident, IncidentHistory
 from app.schemas.incident import (
     IncidentCategory,
