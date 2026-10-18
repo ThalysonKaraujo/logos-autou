@@ -132,3 +132,57 @@ async def test_create_incident_succeeds():
         assert history_entries[0].from_status is None
         assert history_entries[0].to_status == "Aberto"
         assert history_entries[0].analyst_name == "Sistema"
+
+
+@pytest.mark.asyncio
+async def test_get_incident_by_id_fails_with_invalid_uuid():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/incidents/id-invalido")
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["status_code"] == 422
+    assert data["status_name"] == "Unprocessable Entity"
+    assert data["message"] == "Erro de validação nos dados enviados"
+    assert isinstance(data["details"], list)
+
+
+@pytest.mark.asyncio
+async def test_get_incident_by_id_fails_when_not_found():
+    non_existent_id = "00000000-0000-0000-0000-000000000000"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get(f"/api/v1/incidents/{non_existent_id}")
+
+    assert response.status_code == 404
+    data = response.json()
+    assert data["status_code"] == 404
+    assert data["status_name"] == "Not Found"
+    assert data["message"] == "Incidente não encontrado"
+    assert data["details"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_incident_by_id_succeeds_with_history():
+    payload = get_valid_incident_payload()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post("/api/v1/incidents", json=payload)
+        incident_id = create_response.json()["id"]
+
+        response = await client.get(f"/api/v1/incidents/{incident_id}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == incident_id
+    assert data["title"] == payload["title"]
+    assert data["status"] == "Aberto"
+    assert data["version"] == 1
+    assert isinstance(data["history"], list)
+    assert len(data["history"]) == 1
+    assert data["history"][0]["action"] == "CREATED"
+    assert data["history"][0]["from_status"] is None
+    assert data["history"][0]["to_status"] == "Aberto"
+    assert data["history"][0]["analyst_name"] == "Sistema"

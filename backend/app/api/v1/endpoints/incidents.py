@@ -44,6 +44,7 @@ async def create_incident_endpoint(
     response_model=IncidentDetailResponse,
     status_code=status.HTTP_200_OK,
 )
+
 async def get_incident_by_id_endpoint(
     incident_id: UUID,
     service: IncidentServiceDep,
