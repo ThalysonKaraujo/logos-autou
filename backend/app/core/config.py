@@ -1,4 +1,6 @@
-from pydantic import AnyHttpUrl, field_validator
+from typing import Any
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,10 +11,25 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = [
+    BACKEND_CORS_ORIGINS: list[str] | str = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://logos-autou.vercel.app",
     ]
+    BACKEND_CORS_ORIGIN_REGEX: str = r"^https://.*\.vercel\.app$"
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [
+                origin.strip().rstrip("/") for origin in v.split(",") if origin.strip()
+            ]
+        if isinstance(v, list):
+            return [
+                str(origin).strip().rstrip("/") for origin in v if str(origin).strip()
+            ]
+        return v
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
