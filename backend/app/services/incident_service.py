@@ -4,7 +4,12 @@ from fastapi import HTTPException, status
 
 from app.models.incident import Incident, IncidentHistory
 from app.repositories.incident_repository import IncidentRepository
-from app.schemas.incident import IncidentCreate, IncidentStatus
+from app.schemas.incident import (
+    IncidentCategory,
+    IncidentCreate,
+    IncidentCriticality,
+    IncidentStatus,
+)
 
 
 class IncidentService:
@@ -44,3 +49,21 @@ class IncidentService:
                 detail="Incidente não encontrado",
             )
         return incident
+
+    async def list_incidents(
+        self,
+        status: IncidentStatus | None = None,
+        category: IncidentCategory | None = None,
+        criticality: IncidentCriticality | None = None,
+        search: str | None = None,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> tuple[list[Incident], int]:
+        return await self.repository.list_incidents(
+            status=status.value if status else None,
+            category=category.value if category else None,
+            criticality=criticality.value if criticality else None,
+            search=search,
+            skip=skip,
+            limit=limit,
+        )

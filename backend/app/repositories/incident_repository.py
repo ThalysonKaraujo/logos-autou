@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -32,3 +32,54 @@ class IncidentRepository:
         )
         result = await self.db.execute(statement)
         return result.scalar_one_or_none()
+
+    async def list_incidents(
+        self,
+        status: str | None = None,
+        category: str | None = None,
+        criticality: str | None = None,
+        search: str | None = None,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> tuple[list[Incident], int]:
+        filters = []
+        if status:
+            filters.append(Incident.status == status)
+        if category:
+            filters.append(Incident.category == category)
+        if criticality:
+            filters.append(Incident.criticality == criticality)
+        if search:
+            search_pattern = f"%{search}%"
+            filters.append(
+                or_(
+                    Incident.title.ilike(search_pattern),
+                    Incident.truck_plate.ilike(search_pattern),
+                )
+            )
+
+        count_statement = select(func.count(Incident.id))
+        if filters:
+            count_statement = count_statement.where(*filters)
+        total_result = await self.db.execute(count_statement)
+        total = total_result.scalar_one()
+
+        criticality_priority = case(
+            (Incident.criticality == "Alta", 1),
+            (Incident.criticality == "Média", 2),
+            (Incident.criticality == "Baixa", 3),
+            else_=4,
+        )
+
+        statement = select(Incident)
+        if filters:
+            statement = statement.where(*filters)
+        statement = (
+            statement.order_by(criticality_priority.asc(), Incident.created_at.asc())
+            .offset(skip)
+            .limit(limit)
+        )
+
+        result = await self.db.execute(statement)
+        items = list(result.scalars().all())
+        return items, total
