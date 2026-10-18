@@ -9,6 +9,7 @@ from app.schemas.incident import (
     IncidentCreate,
     IncidentCriticality,
     IncidentStatus,
+    IncidentStatusUpdate,
 )
 
 
@@ -67,3 +68,38 @@ class IncidentService:
             skip=skip,
             limit=limit,
         )
+
+    async def update_incident_status(
+        self, incident_id: UUID, payload: IncidentStatusUpdate
+    ) -> Incident:
+        incident = await self.get_incident_by_id(incident_id=incident_id)
+
+        if incident.status == payload.status.value:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="O incidente já se encontra neste status",
+            )
+
+        history_entry = IncidentHistory(
+            analyst_name=payload.analyst_name,
+            action="STATUS_CHANGED",
+            from_status=incident.status,
+            to_status=payload.status.value,
+            notes=payload.notes,
+        )
+
+        updated_incident = await self.repository.update_status_with_occ(
+            incident_id=incident_id,
+            expected_version=payload.expected_version,
+            new_status=payload.status.value,
+            analyst_name=payload.analyst_name,
+            history_entry=history_entry,
+        )
+
+        if updated_incident is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Conflito de versão: este incidente já foi atualizado por outro operador",
+            )
+
+        return updated_incident

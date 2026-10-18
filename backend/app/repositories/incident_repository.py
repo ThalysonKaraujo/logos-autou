@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -83,3 +83,36 @@ class IncidentRepository:
         result = await self.db.execute(statement)
         items = list(result.scalars().all())
         return items, total
+
+    async def update_status_with_occ(
+        self,
+        incident_id: UUID,
+        expected_version: int,
+        new_status: str,
+        analyst_name: str,
+        history_entry: IncidentHistory,
+    ) -> Incident | None:
+        statement = (
+            update(Incident)
+            .where(
+                Incident.id == incident_id,
+                Incident.version == expected_version,
+            )
+            .values(
+                status=new_status,
+                assigned_to=analyst_name,
+                version=Incident.version + 1,
+                updated_at=func.now(),
+            )
+        )
+        result = await self.db.execute(statement)
+        if getattr(result, "rowcount", 0) == 0:
+            await self.db.rollback()
+            return None
+
+        history_entry.incident_id = incident_id
+        self.db.add(history_entry)
+        await self.db.commit()
+
+        self.db.expire_all()
+        return await self.get_by_id(incident_id=incident_id)

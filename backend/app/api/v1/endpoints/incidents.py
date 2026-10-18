@@ -14,6 +14,7 @@ from app.schemas.incident import (
     IncidentListResponse,
     IncidentResponse,
     IncidentStatus,
+    IncidentStatusUpdate,
 )
 from app.services.incident_service import IncidentService
 
@@ -81,4 +82,20 @@ async def get_incident_by_id_endpoint(
     service: IncidentServiceDep,
 ) -> IncidentDetailResponse:
     incident = await service.get_incident_by_id(incident_id=incident_id)
+    return IncidentDetailResponse.model_validate(incident)
+
+
+@router.patch(
+    "/{incident_id}/status",
+    response_model=IncidentDetailResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_incident_status_endpoint(
+    incident_id: UUID,
+    payload: IncidentStatusUpdate,
+    service: IncidentServiceDep,
+) -> IncidentDetailResponse:
+    incident = await service.update_incident_status(
+        incident_id=incident_id, payload=payload
+    )
     return IncidentDetailResponse.model_validate(incident)
