@@ -186,3 +186,139 @@ async def test_get_incident_by_id_succeeds_with_history():
     assert data["history"][0]["from_status"] is None
     assert data["history"][0]["to_status"] == "Aberto"
     assert data["history"][0]["analyst_name"] == "Sistema"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_fails_with_invalid_pagination():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response_zero_limit = await client.get("/api/v1/incidents?limit=0")
+        response_high_limit = await client.get("/api/v1/incidents?limit=101")
+        response_neg_skip = await client.get("/api/v1/incidents?skip=-1")
+
+    assert response_zero_limit.status_code == 422
+    assert response_high_limit.status_code == 422
+    assert response_neg_skip.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_fails_with_invalid_criticality_filter():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/incidents?criticality=Inexistente")
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["status_code"] == 422
+    assert data["status_name"] == "Unprocessable Entity"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_empty():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/incidents")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["items"] == []
+    assert data["total"] == 0
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_with_pagination():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        for index in range(3):
+            payload = get_valid_incident_payload()
+            payload["title"] = f"Incidente {index + 1}"
+            payload["truck_plate"] = f"ABC{index}D12"
+            await client.post("/api/v1/incidents", json=payload)
+
+        response = await client.get("/api/v1/incidents?skip=0&limit=2")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["items"]) == 2
+    assert data["total"] == 3
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_with_filters():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload_1 = get_valid_incident_payload()
+        payload_1["title"] = "Bloqueio na pista norte"
+        payload_1["category"] = "Bloqueio de Pista"
+        payload_1["criticality"] = "Alta"
+        await client.post("/api/v1/incidents", json=payload_1)
+
+        payload_2 = get_valid_incident_payload()
+        payload_2["title"] = "Pane eletrica leve"
+        payload_2["category"] = "Problema Mecânico"
+        payload_2["criticality"] = "Baixa"
+        payload_2["truck_plate"] = "XYZ9K88"
+        await client.post("/api/v1/incidents", json=payload_2)
+
+        response = await client.get(
+            "/api/v1/incidents?category=Bloqueio de Pista&criticality=Alta"
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    assert data["items"][0]["title"] == "Bloqueio na pista norte"
+    assert data["items"][0]["category"] == "Bloqueio de Pista"
+    assert data["items"][0]["criticality"] == "Alta"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_search_by_plate_or_title():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload = get_valid_incident_payload()
+        payload["title"] = "Superaquecimento grave"
+        payload["truck_plate"] = "SCO9988"
+        await client.post("/api/v1/incidents", json=payload)
+
+        response_plate = await client.get("/api/v1/incidents?search=SCO9988")
+        response_title = await client.get("/api/v1/incidents?search=Superaquecimento")
+
+    assert response_plate.status_code == 200
+    assert response_plate.json()["total"] == 1
+    assert response_plate.json()["items"][0]["truck_plate"] == "SCO9988"
+
+    assert response_title.status_code == 200
+    assert response_title.json()["total"] == 1
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_ordered_by_triage_priority():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload_low = get_valid_incident_payload()
+        payload_low["title"] = "Pneu furado no acostamento"
+        payload_low["criticality"] = "Baixa"
+        payload_low["truck_plate"] = "BAX1111"
+        await client.post("/api/v1/incidents", json=payload_low)
+
+        payload_high = get_valid_incident_payload()
+        payload_high["title"] = "Tombamento com vítimas"
+        payload_high["criticality"] = "Alta"
+        payload_high["truck_plate"] = "ALT2222"
+        await client.post("/api/v1/incidents", json=payload_high)
+
+        payload_medium = get_valid_incident_payload()
+        payload_medium["title"] = "Pane mecânica em faixa 2"
+        payload_medium["criticality"] = "Média"
+        payload_medium["truck_plate"] = "MED3333"
+        await client.post("/api/v1/incidents", json=payload_medium)
+
+        response = await client.get("/api/v1/incidents")
+
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) == 3
+    assert items[0]["criticality"] == "Alta"
+    assert items[1]["criticality"] == "Média"
+    assert items[2]["criticality"] == "Baixa"
