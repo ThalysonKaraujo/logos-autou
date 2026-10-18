@@ -3,16 +3,9 @@ import { useOperator } from "@/features/operator-session";
 export interface TopbarProps {
 	onOpenNewIncident: () => void;
 	onSimulateOCC: () => void;
-	latencyMs?: number;
-	requestId?: string | null;
 }
 
-export function Topbar({
-	onOpenNewIncident,
-	onSimulateOCC,
-	latencyMs = 1.4,
-	requestId = "5863276b",
-}: TopbarProps) {
+export function Topbar({ onOpenNewIncident, onSimulateOCC }: TopbarProps) {
 	const { operator, availableOperators, setOperator } = useOperator();
 
 	return (
@@ -29,20 +22,13 @@ export function Topbar({
 					</span>
 				</div>
 
-				<div className="flex items-center gap-2 pl-3 border-l border-[#27272a]">
+				<div className="flex items-center gap-1.5 pl-3 border-l border-[#27272a]">
 					<span
 						role="status"
-						aria-label="Conexão com a API online"
+						aria-label="Sistema conectado"
 						className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
 					/>
-					<span className="font-mono text-xs text-zinc-400">
-						{latencyMs.toFixed(1)}ms
-					</span>
-					{requestId && (
-						<span className="font-mono text-xs text-zinc-600 hidden lg:inline">
-							req:{requestId.slice(0, 8)}
-						</span>
-					)}
+					<span className="text-xs text-zinc-400">Conectado</span>
 				</div>
 			</div>
 
