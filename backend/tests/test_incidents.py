@@ -322,3 +322,177 @@ async def test_list_incidents_ordered_by_triage_priority():
     assert items[0]["criticality"] == "Alta"
     assert items[1]["criticality"] == "Média"
     assert items[2]["criticality"] == "Baixa"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_fails_with_invalid_payload():
+    incident_id = "00000000-0000-0000-0000-000000000000"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Status Invalido",
+                "expected_version": 0,
+                "analyst_name": "A",
+            },
+        )
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["status_code"] == 422
+    assert data["status_name"] == "Unprocessable Entity"
+    assert data["message"] == "Erro de validação nos dados enviados"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_fails_when_not_found():
+    non_existent_id = "00000000-0000-0000-0000-000000000000"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.patch(
+            f"/api/v1/incidents/{non_existent_id}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+                "notes": "Iniciando atendimento",
+            },
+        )
+
+    assert response.status_code == 404
+    data = response.json()
+    assert data["status_code"] == 404
+    assert data["status_name"] == "Not Found"
+    assert data["message"] == "Incidente não encontrado"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_fails_when_same_status():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        response = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Aberto",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+            },
+        )
+
+    assert response.status_code == 400
+    data = response.json()
+    assert data["status_code"] == 400
+    assert data["status_name"] == "Bad Request"
+    assert data["message"] == "O incidente já se encontra neste status"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_fails_on_stale_version_conflict():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        first_update = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+                "notes": "Assumindo ocorrência",
+            },
+        )
+        assert first_update.status_code == 200
+        assert first_update.json()["version"] == 2
+
+        conflicting_update = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Fechado",
+                "expected_version": 1,
+                "analyst_name": "Carlos Mendes",
+                "notes": "Tentativa com versão antiga",
+            },
+        )
+
+        assert conflicting_update.status_code == 409
+        conflict_data = conflicting_update.json()
+        assert conflict_data["status_code"] == 409
+        assert conflict_data["status_name"] == "Conflict"
+        assert (
+            conflict_data["message"]
+            == "Conflito de versão: este incidente já foi atualizado por outro operador"
+        )
+
+        current_state = await client.get(f"/api/v1/incidents/{incident_id}")
+        current_data = current_state.json()
+        assert current_data["status"] == "Em Investigação"
+        assert current_data["assigned_to"] == "Mariana Silva"
+        assert current_data["version"] == 2
+        assert len(current_data["history"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_succeeds_and_appends_history():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        step_1 = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+                "notes": "Acionando equipe de apoio na rodovia",
+            },
+        )
+        assert step_1.status_code == 200
+        data_1 = step_1.json()
+        assert data_1["status"] == "Em Investigação"
+        assert data_1["assigned_to"] == "Mariana Silva"
+        assert data_1["version"] == 2
+        assert len(data_1["history"]) == 2
+
+        step_2 = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Fechado",
+                "expected_version": 2,
+                "analyst_name": "Carlos Mendes",
+                "notes": "Veículo removido e pista liberada",
+            },
+        )
+        assert step_2.status_code == 200
+        data_2 = step_2.json()
+        assert data_2["status"] == "Fechado"
+        assert data_2["assigned_to"] == "Carlos Mendes"
+        assert data_2["version"] == 3
+        assert len(data_2["history"]) == 3
+
+        history = data_2["history"]
+        assert history[0]["action"] == "CREATED"
+        assert history[0]["to_status"] == "Aberto"
+
+        assert history[1]["action"] == "STATUS_CHANGED"
+        assert history[1]["from_status"] == "Aberto"
+        assert history[1]["to_status"] == "Em Investigação"
+        assert history[1]["analyst_name"] == "Mariana Silva"
+        assert history[1]["notes"] == "Acionando equipe de apoio na rodovia"
+
+        assert history[2]["action"] == "STATUS_CHANGED"
+        assert history[2]["from_status"] == "Em Investigação"
+        assert history[2]["to_status"] == "Fechado"
+        assert history[2]["analyst_name"] == "Carlos Mendes"
+        assert history[2]["notes"] == "Veículo removido e pista liberada"
