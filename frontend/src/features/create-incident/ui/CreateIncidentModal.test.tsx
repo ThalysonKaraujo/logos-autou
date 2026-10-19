@@ -58,6 +58,7 @@ describe("CreateIncidentModal", () => {
 		expect(screen.getByLabelText(/Motorista/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/Categoria/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/Criticidade/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/Data da Ocorrência/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/Localização/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/Descrição/i)).toBeInTheDocument();
 		expect(
@@ -97,7 +98,7 @@ describe("CreateIncidentModal", () => {
 		});
 	});
 
-	it("submits form successfully and calls onSuccess", async () => {
+	it("submits form successfully with custom date and calls onSuccess", async () => {
 		const mockCreated = {
 			id: "inc-new-1",
 			title: "Pane de arrefecimento",
@@ -110,8 +111,8 @@ describe("CreateIncidentModal", () => {
 			driver_name: "Marcos Lima",
 			assigned_to: null,
 			version: 1,
-			created_at: "2026-10-18T20:00:00Z",
-			updated_at: "2026-10-18T20:00:00Z",
+			created_at: "2026-10-12T12:00:00Z",
+			updated_at: "2026-10-12T12:00:00Z",
 		};
 
 		globalThis.fetch = vi.fn().mockResolvedValue({
@@ -132,6 +133,9 @@ describe("CreateIncidentModal", () => {
 		fireEvent.change(screen.getByLabelText(/Motorista/i), {
 			target: { value: "Marcos Lima" },
 		});
+		fireEvent.change(screen.getByLabelText(/Data da Ocorrência/i), {
+			target: { value: "2026-10-12" },
+		});
 		fireEvent.change(screen.getByLabelText(/Localização/i), {
 			target: { value: "BR-101, Km 50" },
 		});
@@ -145,5 +149,9 @@ describe("CreateIncidentModal", () => {
 		await waitFor(() => {
 			expect(props.onSuccess).toHaveBeenCalledWith(mockCreated);
 		});
+
+		const fetchCall = vi.mocked(globalThis.fetch).mock.calls[0];
+		const requestBody = JSON.parse(fetchCall[1]?.body as string);
+		expect(requestBody.created_at).toBe("2026-10-12");
 	});
 });
