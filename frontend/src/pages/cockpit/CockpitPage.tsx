@@ -120,7 +120,7 @@ export function CockpitPage() {
 
 			<main className="flex-1 flex gap-2.5 min-h-0 lg:overflow-hidden">
 				<section
-					className={`w-full lg:w-[430px] shrink-0 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col overflow-hidden h-full ${
+					className={`w-full lg:w-[40%] lg:min-w-[380px] shrink-0 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col overflow-hidden h-full ${
 						selectedId ? "hidden lg:flex" : "flex"
 					}`}
 				>
