@@ -69,6 +69,20 @@ export interface IncidentCreateInput {
 	assigned_to?: string | null;
 }
 
+export interface IncidentUpdateInput {
+	title: string;
+	description: string;
+	category: IncidentCategory;
+	criticality: IncidentCriticality;
+	location: string;
+	truck_plate: string;
+	driver_name?: string | null;
+	expected_version: number;
+	version?: number;
+	analyst_name: string;
+	notes?: string | null;
+}
+
 export interface IncidentStatusUpdateInput {
 	status: IncidentStatus;
 	expected_version: number;

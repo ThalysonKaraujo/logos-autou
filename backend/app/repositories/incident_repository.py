@@ -116,3 +116,48 @@ class IncidentRepository:
 
         self.db.expire_all()
         return await self.get_by_id(incident_id=incident_id)
+
+    async def update_incident_with_occ(
+        self,
+        incident_id: UUID,
+        expected_version: int,
+        title: str,
+        description: str,
+        category: str,
+        criticality: str,
+        location: str,
+        truck_plate: str,
+        driver_name: str | None,
+        analyst_name: str,
+        history_entry: IncidentHistory,
+    ) -> Incident | None:
+        statement = (
+            update(Incident)
+            .where(
+                Incident.id == incident_id,
+                Incident.version == expected_version,
+            )
+            .values(
+                title=title,
+                description=description,
+                category=category,
+                criticality=criticality,
+                location=location,
+                truck_plate=truck_plate,
+                driver_name=driver_name,
+                assigned_to=analyst_name,
+                version=Incident.version + 1,
+                updated_at=func.now(),
+            )
+        )
+        result = await self.db.execute(statement)
+        if getattr(result, "rowcount", 0) == 0:
+            await self.db.rollback()
+            return None
+
+        history_entry.incident_id = incident_id
+        self.db.add(history_entry)
+        await self.db.commit()
+
+        self.db.expire_all()
+        return await self.get_by_id(incident_id=incident_id)

@@ -16,6 +16,7 @@ from app.schemas.incident import (
     IncidentResponse,
     IncidentStatus,
     IncidentStatusUpdate,
+    IncidentUpdate,
 )
 from app.services.incident_service import IncidentService
 
@@ -108,6 +109,35 @@ async def get_incident_by_id_endpoint(
     service: IncidentServiceDep,
 ) -> IncidentDetailResponse:
     incident = await service.get_incident_by_id(incident_id=incident_id)
+    return IncidentDetailResponse.model_validate(incident)
+
+
+@router.put(
+    "/{incident_id}",
+    response_model=IncidentDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Editar dados do incidente com controle de concorrência otimista (OCC)",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ErrorResponse,
+            "description": "Dados inválidos ou nenhuma alteração detectada",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorResponse,
+            "description": "Incidente não encontrado",
+        },
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorResponse,
+            "description": "Conflito de versão (OCC) - incidente alterado concorrentemente",
+        },
+    },
+)
+async def update_incident_endpoint(
+    incident_id: UUID,
+    payload: IncidentUpdate,
+    service: IncidentServiceDep,
+) -> IncidentDetailResponse:
+    incident = await service.update_incident(incident_id=incident_id, payload=payload)
     return IncidentDetailResponse.model_validate(incident)
 
 

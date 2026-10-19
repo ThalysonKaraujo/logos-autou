@@ -10,6 +10,7 @@ from app.schemas.incident import (
     IncidentCriticality,
     IncidentStatus,
     IncidentStatusUpdate,
+    IncidentUpdate,
 )
 
 
@@ -92,6 +93,74 @@ class IncidentService:
             incident_id=incident_id,
             expected_version=payload.expected_version,
             new_status=payload.status.value,
+            analyst_name=payload.analyst_name,
+            history_entry=history_entry,
+        )
+
+        if updated_incident is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Conflito de versão: este incidente já foi atualizado por outro operador",
+            )
+
+        return updated_incident
+
+    async def update_incident(
+        self, incident_id: UUID, payload: IncidentUpdate
+    ) -> Incident:
+        incident = await self.get_incident_by_id(incident_id=incident_id)
+
+        changes: list[str] = []
+        if incident.title != payload.title:
+            changes.append("Título")
+        if incident.description != payload.description:
+            changes.append("Descrição")
+        if incident.category != payload.category.value:
+            changes.append(
+                f"Categoria ({incident.category} → {payload.category.value})"
+            )
+        if incident.criticality != payload.criticality.value:
+            changes.append(
+                f"Criticidade ({incident.criticality} → {payload.criticality.value})"
+            )
+        if incident.location != payload.location:
+            changes.append("Localização")
+        if incident.truck_plate != payload.truck_plate:
+            changes.append(f"Placa ({incident.truck_plate} → {payload.truck_plate})")
+        if (incident.driver_name or None) != (payload.driver_name or None):
+            changes.append("Motorista")
+
+        if not changes and not payload.notes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Nenhuma alteração detectada nos dados do incidente",
+            )
+
+        summary = (
+            f"Alterações: {', '.join(changes)}"
+            if changes
+            else "Revisão operacional registrada"
+        )
+        audit_notes = f"{summary} | {payload.notes}" if payload.notes else summary
+
+        history_entry = IncidentHistory(
+            analyst_name=payload.analyst_name,
+            action="UPDATED",
+            from_status=incident.status,
+            to_status=incident.status,
+            notes=audit_notes[:500],
+        )
+
+        updated_incident = await self.repository.update_incident_with_occ(
+            incident_id=incident_id,
+            expected_version=payload.expected_version,
+            title=payload.title,
+            description=payload.description,
+            category=payload.category.value,
+            criticality=payload.criticality.value,
+            location=payload.location,
+            truck_plate=payload.truck_plate,
+            driver_name=payload.driver_name,
             analyst_name=payload.analyst_name,
             history_entry=history_entry,
         )

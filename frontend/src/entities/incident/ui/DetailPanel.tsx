@@ -1,10 +1,13 @@
-import { CheckCircle2, HelpCircle, UserCheck } from "lucide-react";
+import { CheckCircle2, HelpCircle, Pencil, UserCheck } from "lucide-react";
 import { useState } from "react";
 import {
 	useIncidentDetail,
 	useUpdateIncidentStatus,
 } from "@/entities/incident/api";
-import type { IncidentStatus } from "@/entities/incident/model/types";
+import type {
+	IncidentDetail,
+	IncidentStatus,
+} from "@/entities/incident/model/types";
 import { useOperator } from "@/features/operator-session";
 import { CriticalityDot, IncidentSkeleton, PlateBadge } from "@/shared/ui";
 
@@ -12,12 +15,14 @@ export interface DetailPanelProps {
 	incidentId: string | null;
 	onBackToList?: () => void;
 	onConflictDetected?: (requestId: string | null) => void;
+	onEditIncident?: (incident: IncidentDetail) => void;
 }
 
 export function DetailPanel({
 	incidentId,
 	onBackToList,
 	onConflictDetected,
+	onEditIncident,
 }: DetailPanelProps) {
 	const { operator } = useOperator();
 	const { data: incident, isLoading, isError } = useIncidentDetail(incidentId);
@@ -134,11 +139,23 @@ export function DetailPanel({
 					</span>
 				</div>
 
-				<div className="text-xs text-zinc-500">
-					Atribuído:{" "}
-					<span className="text-zinc-800 dark:text-zinc-300 font-medium">
-						{incident.assigned_to || "Não atribuído"}
-					</span>
+				<div className="flex items-center gap-3">
+					<div className="text-xs text-zinc-500">
+						Atribuído:{" "}
+						<span className="text-zinc-800 dark:text-zinc-300 font-medium">
+							{incident.assigned_to || "Não atribuído"}
+						</span>
+					</div>
+					{onEditIncident && (
+						<button
+							type="button"
+							onClick={() => onEditIncident(incident)}
+							className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium bg-zinc-100 dark:bg-[#18181b] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-[#27272a] hover:bg-zinc-200 dark:hover:bg-[#27272a] hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
+						>
+							<Pencil className="w-3 h-3 shrink-0" />
+							<span>Editar</span>
+						</button>
+					)}
 				</div>
 			</div>
 
@@ -265,7 +282,14 @@ export function DetailPanel({
 									</span>
 								</div>
 								<p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-									{h.from_status ? (
+									{h.action === "UPDATED" ? (
+										<span>
+											Edição operacional:{" "}
+											<span className="text-zinc-900 dark:text-zinc-200 font-medium">
+												{h.to_status}
+											</span>
+										</span>
+									) : h.from_status ? (
 										<span>
 											{h.from_status} →{" "}
 											<span className="text-zinc-900 dark:text-zinc-200 font-medium">
