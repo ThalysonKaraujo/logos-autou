@@ -76,12 +76,7 @@ export function CockpitPage() {
 
 	return (
 		<div className="min-h-screen lg:h-screen lg:max-h-screen bg-[#09090b] text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans lg:overflow-hidden">
-			<Topbar
-				onOpenNewIncident={() => setIsCreateModalOpen(true)}
-				onSimulateOCC={() => {
-					setOccConflictTraceId("occ-simulated-9842a1b");
-				}}
-			/>
+			<Topbar onOpenNewIncident={() => setIsCreateModalOpen(true)} />
 
 			{occConflictTraceId && (
 				<div className="bg-[#18181b] border border-amber-900/60 rounded-lg p-3 flex items-start justify-between gap-3 shadow-sm animate-fade-in">

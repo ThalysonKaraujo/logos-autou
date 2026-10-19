@@ -2,10 +2,9 @@ import { useOperator } from "@/features/operator-session";
 
 export interface TopbarProps {
 	onOpenNewIncident: () => void;
-	onSimulateOCC: () => void;
 }
 
-export function Topbar({ onOpenNewIncident, onSimulateOCC }: TopbarProps) {
+export function Topbar({ onOpenNewIncident }: TopbarProps) {
 	const { operator, availableOperators, setOperator } = useOperator();
 
 	return (
@@ -17,9 +16,6 @@ export function Topbar({ onOpenNewIncident, onSimulateOCC }: TopbarProps) {
 					</span>
 					<span className="text-zinc-600">/</span>
 					<span className="text-zinc-400 text-xs">Central de Incidentes</span>
-					<span className="text-zinc-600 font-mono text-xs hidden sm:inline">
-						(AutoU 5.000)
-					</span>
 				</div>
 
 				<div className="flex items-center gap-1.5 pl-3 border-l border-[#27272a]">
@@ -57,14 +53,6 @@ export function Topbar({ onOpenNewIncident, onSimulateOCC }: TopbarProps) {
 						))}
 					</select>
 				</div>
-
-				<button
-					type="button"
-					onClick={onSimulateOCC}
-					className="px-2.5 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 bg-[#18181b] border border-[#27272a] hover:border-zinc-600 transition-colors"
-				>
-					Simular OCC (409)
-				</button>
 
 				<button
 					type="button"
