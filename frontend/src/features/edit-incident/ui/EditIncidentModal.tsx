@@ -1,22 +1,6 @@
-import { useEffect, useState } from "react";
-import { useUpdateIncident } from "@/entities/incident/api";
-import type {
-	IncidentCategory,
-	IncidentCriticality,
-	IncidentDetail,
-} from "@/entities/incident/model/types";
-import { useOperator } from "@/features/operator-session";
-import { formatPlate, isValidPlate } from "../model/validation";
-
-const CATEGORIES: IncidentCategory[] = [
-	"Acidente com Veículo",
-	"Acidente com Vítimas",
-	"Condição Climática Atípica na Pista",
-	"Problema Mecânico",
-	"Bloqueio de Pista",
-];
-
-const CRITICALITIES: IncidentCriticality[] = ["Alta", "Média", "Baixa"];
+import type { IncidentDetail } from "@/entities/incident/model/types";
+import { CATEGORIES, CRITICALITIES } from "../model/constants";
+import { useEditIncidentForm } from "../model/useEditIncidentForm";
 
 export interface EditIncidentModalProps {
 	incident: IncidentDetail | null;
@@ -25,117 +9,11 @@ export interface EditIncidentModalProps {
 	onConflictDetected?: (requestId: string | null) => void;
 }
 
-export function EditIncidentModal({
-	incident,
-	isOpen,
-	onClose,
-	onConflictDetected,
-}: EditIncidentModalProps) {
-	const { operator } = useOperator();
-	const updateMutation = useUpdateIncident();
-
-	const [title, setTitle] = useState("");
-	const [truckPlate, setTruckPlate] = useState("");
-	const [driverName, setDriverName] = useState("");
-	const [category, setCategory] =
-		useState<IncidentCategory>("Problema Mecânico");
-	const [criticality, setCriticality] = useState<IncidentCriticality>("Alta");
-	const [location, setLocation] = useState("");
-	const [description, setDescription] = useState("");
-	const [notes, setNotes] = useState("");
-
-	const [plateError, setPlateError] = useState<string | null>(null);
-	const [submitError, setSubmitError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (incident && isOpen) {
-			setTitle(incident.title);
-			setTruckPlate(incident.truck_plate);
-			setDriverName(incident.driver_name || "");
-			setCategory(incident.category);
-			setCriticality(incident.criticality);
-			setLocation(incident.location);
-			setDescription(incident.description);
-			setNotes("");
-			setPlateError(null);
-			setSubmitError(null);
-		}
-	}, [incident, isOpen]);
-
-	useEffect(() => {
-		if (!isOpen) return;
-
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				onClose();
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => {
-			window.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [isOpen, onClose]);
+export function EditIncidentModal(props: EditIncidentModalProps) {
+	const { incident, isOpen, onClose } = props;
+	const form = useEditIncidentForm(props);
 
 	if (!isOpen || !incident) return null;
-
-	const handlePlateChange = (value: string) => {
-		const formatted = formatPlate(value);
-		setTruckPlate(formatted);
-		if (plateError && isValidPlate(formatted)) {
-			setPlateError(null);
-		}
-	};
-
-	const handlePlateBlur = () => {
-		if (truckPlate && !isValidPlate(truckPlate)) {
-			setPlateError("Placa inválida. Utilize o padrão Mercosul (ex: LOG0A10).");
-		}
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSubmitError(null);
-
-		const formattedPlate = formatPlate(truckPlate);
-		if (!isValidPlate(formattedPlate)) {
-			setPlateError("Placa inválida. Utilize o padrão Mercosul (ex: LOG0A10).");
-			return;
-		}
-
-		try {
-			await updateMutation.mutateAsync({
-				incidentId: incident.id,
-				payload: {
-					title: title.trim(),
-					truck_plate: formattedPlate,
-					driver_name: driverName.trim() || "Motorista não identificado",
-					category,
-					criticality,
-					location: location.trim(),
-					description: description.trim(),
-					expected_version: incident.version,
-					version: incident.version,
-					analyst_name: operator,
-					notes: notes.trim() || null,
-				},
-			});
-
-			onClose();
-		} catch (error: unknown) {
-			const err = error as {
-				status?: number;
-				requestId?: string | null;
-				message?: string;
-			};
-			if (err?.status === 409) {
-				onClose();
-				onConflictDetected?.(err.requestId || null);
-			} else {
-				setSubmitError(err?.message || "Erro ao salvar alterações do chamado.");
-			}
-		}
-	};
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -168,7 +46,7 @@ export function EditIncidentModal({
 						<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
 							Auditoria e controle de concorrência ativos • Operador:{" "}
 							<span className="font-mono text-zinc-700 dark:text-zinc-300">
-								{operator}
+								{form.operator}
 							</span>
 						</p>
 					</div>
@@ -184,12 +62,12 @@ export function EditIncidentModal({
 				</header>
 
 				<form
-					onSubmit={handleSubmit}
+					onSubmit={form.handleSubmit}
 					className="p-4 sm:p-5 flex flex-col gap-3.5"
 				>
-					{submitError && (
+					{form.submitError && (
 						<div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
-							{submitError}
+							{form.submitError}
 						</div>
 					)}
 
@@ -206,8 +84,8 @@ export function EditIncidentModal({
 							required
 							minLength={3}
 							maxLength={150}
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
+							value={form.title}
+							onChange={(e) => form.setTitle(e.target.value)}
 							className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
 						/>
 					</div>
@@ -224,19 +102,19 @@ export function EditIncidentModal({
 								id="edit-incident-plate"
 								type="text"
 								required
-								value={truckPlate}
-								onChange={(e) => handlePlateChange(e.target.value)}
-								onBlur={handlePlateBlur}
+								value={form.truckPlate}
+								onChange={(e) => form.handlePlateChange(e.target.value)}
+								onBlur={form.handlePlateBlur}
 								maxLength={8}
 								className={`bg-zinc-50 dark:bg-[#18181b] border ${
-									plateError
+									form.plateError
 										? "border-rose-500"
 										: "border-zinc-200 dark:border-[#27272a]"
 								} focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 font-mono outline-none uppercase transition-colors`}
 							/>
-							{plateError && (
+							{form.plateError && (
 								<span className="text-[11px] text-rose-600 dark:text-rose-400">
-									{plateError}
+									{form.plateError}
 								</span>
 							)}
 						</div>
@@ -251,8 +129,8 @@ export function EditIncidentModal({
 							<input
 								id="edit-incident-driver"
 								type="text"
-								value={driverName}
-								onChange={(e) => setDriverName(e.target.value)}
+								value={form.driverName}
+								onChange={(e) => form.setDriverName(e.target.value)}
 								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
 							/>
 						</div>
@@ -268,10 +146,8 @@ export function EditIncidentModal({
 							</label>
 							<select
 								id="edit-incident-category"
-								value={category}
-								onChange={(e) =>
-									setCategory(e.target.value as IncidentCategory)
-								}
+								value={form.category}
+								onChange={(e) => form.handleCategoryChange(e.target.value)}
 								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer transition-colors"
 							>
 								{CATEGORIES.map((cat) => (
@@ -295,10 +171,8 @@ export function EditIncidentModal({
 							</label>
 							<select
 								id="edit-incident-criticality"
-								value={criticality}
-								onChange={(e) =>
-									setCriticality(e.target.value as IncidentCriticality)
-								}
+								value={form.criticality}
+								onChange={(e) => form.handleCriticalityChange(e.target.value)}
 								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer transition-colors"
 							>
 								{CRITICALITIES.map((crit) => (
@@ -327,8 +201,8 @@ export function EditIncidentModal({
 							required
 							minLength={3}
 							maxLength={120}
-							value={location}
-							onChange={(e) => setLocation(e.target.value)}
+							value={form.location}
+							onChange={(e) => form.setLocation(e.target.value)}
 							className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
 						/>
 					</div>
@@ -345,8 +219,8 @@ export function EditIncidentModal({
 							required
 							minLength={5}
 							rows={3}
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
+							value={form.description}
+							onChange={(e) => form.setDescription(e.target.value)}
 							className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none resize-none transition-colors"
 						/>
 					</div>
@@ -362,8 +236,8 @@ export function EditIncidentModal({
 							id="edit-incident-notes"
 							type="text"
 							maxLength={300}
-							value={notes}
-							onChange={(e) => setNotes(e.target.value)}
+							value={form.notes}
+							onChange={(e) => form.setNotes(e.target.value)}
 							placeholder="Ex: Reclassificado após confirmação da PRF..."
 							className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none transition-colors"
 						/>
@@ -380,10 +254,10 @@ export function EditIncidentModal({
 
 						<button
 							type="submit"
-							disabled={updateMutation.isPending}
+							disabled={form.isSubmitting}
 							className="px-4 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 transition-colors"
 						>
-							{updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+							{form.isSubmitting ? "Salvando..." : "Salvar Alterações"}
 						</button>
 					</footer>
 				</form>
