@@ -76,7 +76,15 @@ describe("incidentQueries", () => {
 
 		const { wrapper } = createWrapper();
 		const { result } = renderHook(
-			() => useIncidents({ criticality: "Alta", status: "Aberto", limit: 10 }),
+			() =>
+				useIncidents({
+					criticality: "Alta",
+					status: "Aberto",
+					category: "Acidente com Veículo",
+					date_from: "2026-10-01",
+					date_to: "2026-10-19",
+					limit: 10,
+				}),
 			{ wrapper },
 		);
 
@@ -89,6 +97,8 @@ describe("incidentQueries", () => {
 		const requestedUrl = fetchCall[0] as string;
 		expect(requestedUrl).toContain("criticality=Alta");
 		expect(requestedUrl).toContain("status=Aberto");
+		expect(requestedUrl).toContain("date_from=2026-10-01");
+		expect(requestedUrl).toContain("date_to=2026-10-19");
 		expect(requestedUrl).toContain("limit=10");
 	});
 
