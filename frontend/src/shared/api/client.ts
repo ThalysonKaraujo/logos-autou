@@ -38,6 +38,10 @@ export class ApiError extends Error {
 	get isBadRequest(): boolean {
 		return this.status === 400;
 	}
+
+	get isNetworkError(): boolean {
+		return this.status === 0;
+	}
 }
 
 const getBaseUrl = (): string => {
@@ -72,31 +76,49 @@ const executeRequest = async <T>(
 		headers.set("X-Request-ID", traceId);
 	}
 
-	const response = await fetch(url, {
-		...options,
-		headers,
-	});
+	try {
+		const response = await fetch(url, {
+			...options,
+			headers,
+		});
 
-	const responseRequestId =
-		response.headers.get("x-request-id") || headers.get("X-Request-ID");
-	const responseProcessTime = response.headers.get("x-process-time");
+		const responseRequestId =
+			response.headers.get("x-request-id") || headers.get("X-Request-ID");
+		const responseProcessTime = response.headers.get("x-process-time");
 
-	if (!response.ok) {
-		let errorPayload: ErrorResponse | null = null;
-		try {
-			errorPayload = (await response.json()) as ErrorResponse;
-		} catch {
-			errorPayload = null;
+		if (!response.ok) {
+			let errorPayload: ErrorResponse | null = null;
+			try {
+				errorPayload = (await response.json()) as ErrorResponse;
+			} catch {
+				errorPayload = null;
+			}
+			throw new ApiError(response.status, errorPayload, responseRequestId);
 		}
-		throw new ApiError(response.status, errorPayload, responseRequestId);
-	}
 
-	const data = (await response.json()) as T;
-	return {
-		data,
-		requestId: responseRequestId,
-		processTime: responseProcessTime,
-	};
+		const data = (await response.json()) as T;
+		return {
+			data,
+			requestId: responseRequestId,
+			processTime: responseProcessTime,
+		};
+	} catch (error) {
+		if (error instanceof ApiError) {
+			throw error;
+		}
+		throw new ApiError(
+			0,
+			{
+				status_code: 0,
+				status_name: "Network Error",
+				message:
+					"Não foi possível conectar ao servidor. Verifique sua conexão com a internet.",
+				details: null,
+				request_id: traceId,
+			},
+			traceId,
+		);
+	}
 };
 
 export const apiClient = {
