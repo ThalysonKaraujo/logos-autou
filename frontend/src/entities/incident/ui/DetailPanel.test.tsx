@@ -126,4 +126,37 @@ describe("DetailPanel", () => {
 		});
 		expect(reopenButton).toBeDisabled();
 	});
+
+	it("renders mobile back to list button and triggers onBackToList when clicked", async () => {
+		const onBackToList = vi.fn();
+		globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+			if (typeof url === "string" && url.endsWith("/api/v1/incidents/inc-1")) {
+				return Promise.resolve({
+					ok: true,
+					status: 200,
+					json: async () => mockIncident,
+					headers: new Headers({ "content-type": "application/json" }),
+				} as Response);
+			}
+			return Promise.reject(new Error(`Unhandled URL: ${url}`));
+		});
+
+		const queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false } },
+		});
+		render(
+			<QueryClientProvider client={queryClient}>
+				<OperatorProvider>
+					<DetailPanel incidentId="inc-1" onBackToList={onBackToList} />
+				</OperatorProvider>
+			</QueryClientProvider>,
+		);
+
+		const backButton = await screen.findByRole("button", {
+			name: /voltar.*fila/i,
+		});
+		expect(backButton).toBeInTheDocument();
+		fireEvent.click(backButton);
+		expect(onBackToList).toHaveBeenCalledTimes(1);
+	});
 });

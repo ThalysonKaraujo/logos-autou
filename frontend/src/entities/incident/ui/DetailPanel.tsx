@@ -1,4 +1,5 @@
 import {
+	ArrowLeft,
 	CheckCircle2,
 	HelpCircle,
 	Pencil,
@@ -116,9 +117,11 @@ export function DetailPanel({
 						<button
 							type="button"
 							onClick={onBackToList}
-							className="lg:hidden px-2 py-0.5 rounded text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] mr-1"
+							aria-label="Voltar para a fila de triagem"
+							className="lg:hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-[#18181b] hover:bg-zinc-200 dark:hover:bg-[#27272a] border border-zinc-200 dark:border-[#27272a] transition-colors shrink-0 shadow-2xs active:scale-95 touch-manipulation mr-1"
 						>
-							← Fila
+							<ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+							<span>Voltar à Fila</span>
 						</button>
 					)}
 					<PlateBadge plate={incident.truck_plate} />
