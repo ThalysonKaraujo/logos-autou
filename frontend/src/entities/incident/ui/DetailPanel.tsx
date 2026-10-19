@@ -22,10 +22,11 @@ export function DetailPanel({
 	const { data: incident, isLoading, isError } = useIncidentDetail(incidentId);
 	const updateStatusMutation = useUpdateIncidentStatus();
 	const [notes, setNotes] = useState("");
+	const [actionError, setActionError] = useState<string | null>(null);
 
 	if (!incidentId) {
 		return (
-			<div className="h-full flex flex-col items-center justify-center p-8 text-center text-zinc-500 bg-[#121215] border border-[#27272a] rounded-lg">
+			<div className="w-full h-full flex flex-col items-center justify-center p-8 text-center text-zinc-500 bg-[#121215] border border-[#27272a] rounded-lg">
 				<p className="text-xs font-medium text-zinc-400">
 					Nenhum chamado selecionado
 				</p>
@@ -39,7 +40,7 @@ export function DetailPanel({
 
 	if (isLoading) {
 		return (
-			<div className="p-4 bg-[#121215] border border-[#27272a] rounded-lg h-full">
+			<div className="w-full p-4 bg-[#121215] border border-[#27272a] rounded-lg h-full">
 				<IncidentSkeleton count={3} />
 			</div>
 		);
@@ -47,7 +48,7 @@ export function DetailPanel({
 
 	if (isError || !incident) {
 		return (
-			<div className="p-6 bg-[#121215] border border-red-900/40 rounded-lg text-center space-y-2">
+			<div className="w-full p-6 bg-[#121215] border border-red-900/40 rounded-lg text-center space-y-2">
 				<p className="text-xs text-red-400">
 					Erro ao carregar os detalhes do chamado.
 				</p>
@@ -66,12 +67,14 @@ export function DetailPanel({
 
 	const handleStatusChange = async (newStatus: IncidentStatus) => {
 		if (incident.status === newStatus) return;
+		setActionError(null);
 
 		try {
 			await updateStatusMutation.mutateAsync({
 				incidentId: incident.id,
 				payload: {
 					status: newStatus,
+					expected_version: incident.version,
 					version: incident.version,
 					analyst_name: operator,
 					notes: notes.trim() || null,
@@ -79,15 +82,21 @@ export function DetailPanel({
 			});
 			setNotes("");
 		} catch (error: unknown) {
-			const err = error as { status?: number; requestId?: string | null };
+			const err = error as {
+				status?: number;
+				requestId?: string | null;
+				message?: string;
+			};
 			if (err?.status === 409) {
 				onConflictDetected?.(err.requestId || null);
+			} else {
+				setActionError(err?.message || "Erro ao atualizar status do chamado.");
 			}
 		}
 	};
 
 	return (
-		<div className="bg-[#121215] border border-[#27272a] rounded-lg flex flex-col h-full overflow-hidden shadow-xs">
+		<div className="w-full flex-1 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col h-full overflow-hidden shadow-xs">
 			<div className="px-3 py-2.5 sm:px-4 border-b border-[#27272a] flex items-center justify-between gap-2 flex-wrap">
 				<div className="flex items-center gap-2">
 					{onBackToList && (
@@ -102,7 +111,15 @@ export function DetailPanel({
 					<PlateBadge plate={incident.truck_plate} />
 					<div className="flex items-center gap-1.5">
 						<CriticalityDot criticality={incident.criticality} />
-						<span className="text-xs text-zinc-400 font-medium">
+						<span
+							className={`text-xs font-medium ${
+								incident.criticality === "Alta"
+									? "text-rose-400"
+									: incident.criticality === "Média"
+										? "text-amber-400"
+										: "text-emerald-400"
+							}`}
+						>
 							{incident.criticality.toUpperCase()}
 						</span>
 					</div>
@@ -178,6 +195,12 @@ export function DetailPanel({
 						placeholder="Nota operacional de despacho (opcional)..."
 						className="w-full bg-[#18181b] border border-[#27272a] rounded px-3 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-500"
 					/>
+
+					{actionError && (
+						<div className="bg-rose-950/40 border border-rose-800/60 rounded px-2.5 py-1.5 text-xs text-rose-300">
+							{actionError}
+						</div>
+					)}
 
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
 						<button

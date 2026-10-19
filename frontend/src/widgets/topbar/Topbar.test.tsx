@@ -8,7 +8,6 @@ describe("Topbar", () => {
 	const renderTopbar = (props = {}) => {
 		const defaultProps = {
 			onOpenNewIncident: vi.fn(),
-			onSimulateOCC: vi.fn(),
 			...props,
 		};
 
@@ -20,11 +19,10 @@ describe("Topbar", () => {
 		return { ...result, props: defaultProps };
 	};
 
-	it("renders title branding and fleet info", () => {
+	it("renders title branding", () => {
 		renderTopbar();
 		expect(screen.getByText("LOGOS")).toBeInTheDocument();
 		expect(screen.getByText("Central de Incidentes")).toBeInTheDocument();
-		expect(screen.getByText("(AutoU 5.000)")).toBeInTheDocument();
 	});
 
 	it("renders operator selector with initial operator and allows changing", () => {
@@ -44,16 +42,5 @@ describe("Topbar", () => {
 		fireEvent.click(button);
 
 		expect(props.onOpenNewIncident).toHaveBeenCalledTimes(1);
-	});
-
-	it("calls onSimulateOCC when simulate OCC button is clicked", () => {
-		const { props } = renderTopbar();
-
-		const button = screen.getByRole("button", {
-			name: /Simular OCC \(409\)/i,
-		});
-		fireEvent.click(button);
-
-		expect(props.onSimulateOCC).toHaveBeenCalledTimes(1);
 	});
 });

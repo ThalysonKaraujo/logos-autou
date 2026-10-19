@@ -1,1 +1,5 @@
-export { TriageFilters, type TriageFiltersProps } from "./TriageFilters";
+export {
+	type CriticalityCounts,
+	TriageFilters,
+	type TriageFiltersProps,
+} from "./TriageFilters";

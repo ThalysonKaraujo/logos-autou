@@ -174,6 +174,7 @@ describe("incidentQueries", () => {
 			incidentId: "inc-1",
 			payload: {
 				status: "Fechado",
+				expected_version: 1,
 				version: 1,
 				analyst_name: "Fernanda Costa",
 				notes: "Veículo destombado e liberado",

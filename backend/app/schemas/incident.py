@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
 class IncidentCategory(str, Enum):
@@ -42,7 +42,10 @@ class IncidentCreate(IncidentBase):
 
 class IncidentStatusUpdate(BaseModel):
     status: IncidentStatus
-    expected_version: int = Field(ge=1)
+    expected_version: int = Field(
+        ge=1,
+        validation_alias=AliasChoices("expected_version", "version"),
+    )
     analyst_name: str = Field(min_length=2, max_length=100)
     notes: str | None = Field(default=None, max_length=500)
 

@@ -21,11 +21,11 @@ describe("Shared UI Components", () => {
 			expect(dot?.className).toContain("bg-amber-500");
 		});
 
-		it("renders zinc dot for Baixa criticality", () => {
+		it("renders emerald dot for Baixa criticality", () => {
 			const { container } = render(<CriticalityDot criticality="Baixa" />);
 			const dot = container.querySelector("span");
 			expect(dot).toBeInTheDocument();
-			expect(dot?.className).toContain("bg-zinc-500");
+			expect(dot?.className).toContain("bg-emerald-500");
 		});
 	});
 
