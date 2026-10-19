@@ -47,6 +47,10 @@ describe("useCockpitState", () => {
 		expect(result.current.search).toBe("");
 		expect(result.current.criticality).toBe("ALL");
 		expect(result.current.status).toBe("ALL");
+		expect(result.current.category).toBe("ALL");
+		expect(result.current.datePreset).toBe("ALL");
+		expect(result.current.dateFrom).toBe("");
+		expect(result.current.dateTo).toBe("");
 		expect(result.current.page).toBe(1);
 		expect(result.current.pageSize).toBe(10);
 		expect(result.current.occConflictTraceId).toBeNull();
@@ -54,7 +58,7 @@ describe("useCockpitState", () => {
 		expect(result.current.editingIncident).toBeNull();
 	});
 
-	it("resets page to 1 when filters change", () => {
+	it("resets page to 1 when filters change and supports resetting all filters", () => {
 		const { wrapper } = createWrapper();
 		const { result } = renderHook(() => useCockpitState(), { wrapper });
 
@@ -74,6 +78,36 @@ describe("useCockpitState", () => {
 			result.current.handleStatusChange("Aberto");
 		});
 		expect(result.current.status).toBe("Aberto");
+		expect(result.current.page).toBe(1);
+
+		act(() => {
+			result.current.handleCategoryChange("Bloqueio de Pista");
+		});
+		expect(result.current.category).toBe("Bloqueio de Pista");
+		expect(result.current.filters.category).toBe("Bloqueio de Pista");
+		expect(result.current.page).toBe(1);
+
+		act(() => {
+			result.current.handleDatePresetChange("CUSTOM");
+			result.current.handleDateRangeChange("2026-10-01", "2026-10-15");
+		});
+		expect(result.current.datePreset).toBe("CUSTOM");
+		expect(result.current.dateFrom).toBe("2026-10-01");
+		expect(result.current.dateTo).toBe("2026-10-15");
+		expect(result.current.filters.date_from).toBe("2026-10-01");
+		expect(result.current.filters.date_to).toBe("2026-10-15");
+		expect(result.current.page).toBe(1);
+
+		act(() => {
+			result.current.handleResetFilters();
+		});
+		expect(result.current.search).toBe("");
+		expect(result.current.criticality).toBe("ALL");
+		expect(result.current.status).toBe("ALL");
+		expect(result.current.category).toBe("ALL");
+		expect(result.current.datePreset).toBe("ALL");
+		expect(result.current.dateFrom).toBe("");
+		expect(result.current.dateTo).toBe("");
 		expect(result.current.page).toBe(1);
 	});
 
