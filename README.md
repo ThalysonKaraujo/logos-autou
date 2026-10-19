@@ -61,8 +61,6 @@ O frontend em **React 18 + TypeScript (Vite)** é organizado segundo a metodolog
 - **`entities/`**: Modelos de domínio reutilizáveis (`entities/incident`), incluindo tipos, consultas TanStack Query e componentes atômicos como cartões de incidente e painel de detalhes.
 - **`shared/`**: Utilitários de domínio agnóstico, cliente HTTP (`api/client.ts`), formatadores de data e biblioteca de componentes base.
 
-> **Regra de Ouro da UI:** Os arquivos `.tsx` de interface são componentes estritamente apresentacionais. Toda a lógica de controle de estado, formatação, validação e chamadas assíncronas reside em arquivos `model/` (ex: `useCockpitState.ts`, `useTriageFilters.ts`, `useEditIncidentForm.ts`).
-
 ---
 
 ## 3. Integridade de Dados & Controle de Concorrência
