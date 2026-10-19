@@ -35,8 +35,8 @@ export function IncidentCard({
 			onClick={onSelect}
 			className={`p-3 rounded border transition-colors cursor-pointer w-full text-left outline-none block ${
 				isSelected
-					? "border-zinc-500 bg-[#18181b]"
-					: "border-[#27272a] bg-[#121215] hover:border-zinc-700"
+					? "border-zinc-400 dark:border-zinc-500 bg-zinc-100 dark:bg-[#18181b]"
+					: "border-zinc-200 dark:border-[#27272a] bg-white dark:bg-[#121215] hover:border-zinc-300 dark:hover:border-zinc-700"
 			}`}
 		>
 			<div className="flex items-center justify-between mb-1.5 gap-2">
@@ -46,10 +46,10 @@ export function IncidentCard({
 					<span
 						className={`text-xs hidden sm:inline font-medium ${
 							incident.criticality === "Alta"
-								? "text-rose-400"
+								? "text-rose-600 dark:text-rose-400"
 								: incident.criticality === "Média"
-									? "text-amber-400"
-									: "text-emerald-400"
+									? "text-amber-600 dark:text-amber-400"
+									: "text-emerald-600 dark:text-emerald-400"
 						}`}
 					>
 						{incident.criticality}
@@ -60,17 +60,17 @@ export function IncidentCard({
 				</span>
 			</div>
 
-			<p className="text-xs text-zinc-200 font-medium truncate leading-snug">
+			<p className="text-xs text-zinc-900 dark:text-zinc-200 font-medium truncate leading-snug">
 				{incident.title}
 			</p>
 
-			<div className="flex items-center justify-between text-xs text-zinc-500 mt-2 pt-2 border-t border-[#27272a]/60 gap-2">
+			<div className="flex items-center justify-between text-xs text-zinc-500 mt-2 pt-2 border-t border-zinc-100 dark:border-[#27272a]/60 gap-2">
 				<StatusBadge status={incident.status} />
 				<div className="flex items-center gap-2 shrink-0">
-					<span className="truncate max-w-[120px] text-zinc-400">
+					<span className="truncate max-w-[120px] text-zinc-600 dark:text-zinc-400">
 						{incident.assigned_to || "Sem analista"}
 					</span>
-					<span className="font-mono text-xs text-zinc-600">
+					<span className="font-mono text-xs text-zinc-400 dark:text-zinc-600">
 						v{incident.version}
 					</span>
 				</div>
