@@ -12,6 +12,7 @@ import type {
 	IncidentFilters,
 	IncidentListResponse,
 	IncidentStatusUpdateInput,
+	IncidentUpdateInput,
 } from "../model/types";
 
 export const incidentKeys = {
@@ -78,6 +79,37 @@ export const useUpdateIncidentStatus = () => {
 		mutationFn: async ({ incidentId, payload }: UpdateStatusVariables) => {
 			const response = await apiClient.patch<IncidentDetail>(
 				`/incidents/${incidentId}/status`,
+				payload,
+			);
+			return response.data;
+		},
+		onSuccess: (_data, variables) => {
+			queryClient.invalidateQueries({ queryKey: incidentKeys.lists() });
+			queryClient.invalidateQueries({
+				queryKey: incidentKeys.detail(variables.incidentId),
+			});
+		},
+		onError: (_error, variables) => {
+			queryClient.invalidateQueries({ queryKey: incidentKeys.lists() });
+			queryClient.invalidateQueries({
+				queryKey: incidentKeys.detail(variables.incidentId),
+			});
+		},
+	});
+};
+
+export interface UpdateIncidentVariables {
+	incidentId: string;
+	payload: IncidentUpdateInput;
+}
+
+export const useUpdateIncident = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async ({ incidentId, payload }: UpdateIncidentVariables) => {
+			const response = await apiClient.put<IncidentDetail>(
+				`/incidents/${incidentId}`,
 				payload,
 			);
 			return response.data;
