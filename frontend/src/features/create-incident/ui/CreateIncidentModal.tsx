@@ -1,117 +1,39 @@
-import { useEffect, useState } from "react";
-import { useCreateIncident } from "@/entities/incident/api";
-import type {
-	Incident,
-	IncidentCategory,
-	IncidentCriticality,
-} from "@/entities/incident/model/types";
-import { formatPlate, isValidPlate } from "../model/validation";
+import {
+	CREATE_CATEGORIES,
+	CREATE_CRITICALITIES,
+	type CreateIncidentModalProps,
+	useCreateIncidentForm,
+} from "../model/useCreateIncidentForm";
 
-const CATEGORIES: IncidentCategory[] = [
-	"Acidente com Veículo",
-	"Acidente com Vítimas",
-	"Condição Climática Atípica na Pista",
-	"Problema Mecânico",
-	"Bloqueio de Pista",
-];
+export type { CreateIncidentModalProps };
 
-const CRITICALITIES: IncidentCriticality[] = ["Alta", "Média", "Baixa"];
-
-export interface CreateIncidentModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-	onSuccess?: (createdIncident: Incident) => void;
-}
-
-export function CreateIncidentModal({
-	isOpen,
-	onClose,
-	onSuccess,
-}: CreateIncidentModalProps) {
-	const createMutation = useCreateIncident();
-
-	const [title, setTitle] = useState("");
-	const [truckPlate, setTruckPlate] = useState("");
-	const [driverName, setDriverName] = useState("");
-	const [category, setCategory] =
-		useState<IncidentCategory>("Problema Mecânico");
-	const [criticality, setCriticality] = useState<IncidentCriticality>("Alta");
-	const [location, setLocation] = useState("");
-	const [description, setDescription] = useState("");
-
-	const [plateError, setPlateError] = useState<string | null>(null);
-	const [submitError, setSubmitError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (!isOpen) return;
-
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				onClose();
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => {
-			window.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [isOpen, onClose]);
+export function CreateIncidentModal(props: CreateIncidentModalProps) {
+	const { isOpen, onClose } = props;
+	const {
+		title,
+		setTitle,
+		truckPlate,
+		handlePlateChange,
+		handlePlateBlur,
+		driverName,
+		setDriverName,
+		category,
+		handleCategoryChange,
+		criticality,
+		handleCriticalityChange,
+		incidentDate,
+		setIncidentDate,
+		location,
+		setLocation,
+		description,
+		setDescription,
+		plateError,
+		submitError,
+		handleSubmit,
+		isPending,
+	} = useCreateIncidentForm(props);
 
 	if (!isOpen) return null;
-
-	const handlePlateChange = (value: string) => {
-		const formatted = formatPlate(value);
-		setTruckPlate(formatted);
-		if (plateError && isValidPlate(formatted)) {
-			setPlateError(null);
-		}
-	};
-
-	const handlePlateBlur = () => {
-		if (truckPlate && !isValidPlate(truckPlate)) {
-			setPlateError("Placa inválida. Utilize o padrão Mercosul (ex: LOG0A10).");
-		}
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setSubmitError(null);
-
-		const formattedPlate = formatPlate(truckPlate);
-		if (!isValidPlate(formattedPlate)) {
-			setPlateError("Placa inválida. Utilize o padrão Mercosul (ex: LOG0A10).");
-			return;
-		}
-
-		try {
-			const created = await createMutation.mutateAsync({
-				title: title.trim(),
-				truck_plate: formattedPlate,
-				driver_name: driverName.trim() || "Motorista não identificado",
-				category,
-				criticality,
-				location: location.trim(),
-				description: description.trim(),
-			});
-
-			setTitle("");
-			setTruckPlate("");
-			setDriverName("");
-			setLocation("");
-			setDescription("");
-			setPlateError(null);
-			setSubmitError(null);
-
-			onSuccess?.(created);
-			onClose();
-		} catch (err: unknown) {
-			const message =
-				err instanceof Error
-					? err.message
-					: "Erro ao criar chamado. Tente novamente.";
-			setSubmitError(message);
-		}
-	};
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -229,7 +151,7 @@ export function CreateIncidentModal({
 						</div>
 					</div>
 
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 						<div className="flex flex-col gap-1.5">
 							<label
 								htmlFor="incident-category"
@@ -240,12 +162,10 @@ export function CreateIncidentModal({
 							<select
 								id="incident-category"
 								value={category}
-								onChange={(e) =>
-									setCategory(e.target.value as IncidentCategory)
-								}
+								onChange={(e) => handleCategoryChange(e.target.value)}
 								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer transition-colors"
 							>
-								{CATEGORIES.map((cat) => (
+								{CREATE_CATEGORIES.map((cat) => (
 									<option
 										key={cat}
 										value={cat}
@@ -267,12 +187,10 @@ export function CreateIncidentModal({
 							<select
 								id="incident-criticality"
 								value={criticality}
-								onChange={(e) =>
-									setCriticality(e.target.value as IncidentCriticality)
-								}
+								onChange={(e) => handleCriticalityChange(e.target.value)}
 								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer transition-colors"
 							>
-								{CRITICALITIES.map((crit) => (
+								{CREATE_CRITICALITIES.map((crit) => (
 									<option
 										key={crit}
 										value={crit}
@@ -282,6 +200,23 @@ export function CreateIncidentModal({
 									</option>
 								))}
 							</select>
+						</div>
+
+						<div className="flex flex-col gap-1.5">
+							<label
+								htmlFor="incident-date"
+								className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
+							>
+								Data da Ocorrência
+							</label>
+							<input
+								id="incident-date"
+								type="date"
+								required
+								value={incidentDate}
+								onChange={(e) => setIncidentDate(e.target.value)}
+								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
+							/>
 						</div>
 					</div>
 
@@ -335,10 +270,10 @@ export function CreateIncidentModal({
 
 						<button
 							type="submit"
-							disabled={createMutation.isPending}
+							disabled={isPending}
 							className="px-4 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 transition-colors"
 						>
-							{createMutation.isPending ? "Criando..." : "Criar Chamado"}
+							{isPending ? "Criando..." : "Criar Chamado"}
 						</button>
 					</footer>
 				</form>
