@@ -1,4 +1,6 @@
 export {
+	buildQueryParams,
+	fetchIncidents,
 	incidentKeys,
 	type UpdateStatusVariables,
 	useCreateIncident,

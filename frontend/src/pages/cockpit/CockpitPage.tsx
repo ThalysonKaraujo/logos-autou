@@ -1,5 +1,10 @@
-import { useMemo, useState } from "react";
-import { useIncidents } from "@/entities/incident/api";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import {
+	fetchIncidents,
+	incidentKeys,
+	useIncidents,
+} from "@/entities/incident/api";
 import type {
 	IncidentCriticality,
 	IncidentFilters,
@@ -13,6 +18,7 @@ import { Topbar } from "@/widgets/topbar";
 const PAGE_SIZE = 10;
 
 export function CockpitPage() {
+	const queryClient = useQueryClient();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
 	const [criticality, setCriticality] = useState<IncidentCriticality | "ALL">(
@@ -73,6 +79,31 @@ export function CockpitPage() {
 	const { data: listData } = useIncidents(filters);
 	const total = listData?.total ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+	useEffect(() => {
+		if (page < totalPages) {
+			const nextFilters: IncidentFilters = {
+				...filters,
+				skip: page * PAGE_SIZE,
+				limit: PAGE_SIZE,
+			};
+			queryClient.prefetchQuery({
+				queryKey: incidentKeys.list(nextFilters),
+				queryFn: () => fetchIncidents(nextFilters),
+			});
+		}
+		if (page > 1) {
+			const prevFilters: IncidentFilters = {
+				...filters,
+				skip: (page - 2) * PAGE_SIZE,
+				limit: PAGE_SIZE,
+			};
+			queryClient.prefetchQuery({
+				queryKey: incidentKeys.list(prevFilters),
+				queryFn: () => fetchIncidents(prevFilters),
+			});
+		}
+	}, [page, totalPages, filters, queryClient]);
 
 	return (
 		<div className="min-h-screen lg:h-screen lg:max-h-screen bg-zinc-100 dark:bg-[#09090b] text-zinc-900 dark:text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans lg:overflow-hidden transition-colors">

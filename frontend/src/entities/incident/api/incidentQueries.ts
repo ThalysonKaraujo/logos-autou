@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { apiClient } from "@/shared/api/client";
 import type {
 	Incident,
@@ -18,7 +23,7 @@ export const incidentKeys = {
 	detail: (id: string) => [...incidentKeys.details(), id] as const,
 };
 
-const buildQueryParams = (filters?: IncidentFilters): string => {
+export const buildQueryParams = (filters?: IncidentFilters): string => {
 	if (!filters) return "";
 	const params = new URLSearchParams();
 	if (filters.status) params.set("status", filters.status);
@@ -31,16 +36,21 @@ const buildQueryParams = (filters?: IncidentFilters): string => {
 	return queryString ? `?${queryString}` : "";
 };
 
+export const fetchIncidents = async (
+	filters?: IncidentFilters,
+): Promise<IncidentListResponse> => {
+	const query = buildQueryParams(filters);
+	const response = await apiClient.get<IncidentListResponse>(
+		`/incidents${query}`,
+	);
+	return response.data;
+};
+
 export const useIncidents = (filters?: IncidentFilters) => {
 	return useQuery({
 		queryKey: incidentKeys.list(filters),
-		queryFn: async () => {
-			const query = buildQueryParams(filters);
-			const response = await apiClient.get<IncidentListResponse>(
-				`/incidents${query}`,
-			);
-			return response.data;
-		},
+		queryFn: () => fetchIncidents(filters),
+		placeholderData: keepPreviousData,
 	});
 };
 
