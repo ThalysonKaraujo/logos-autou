@@ -22,14 +22,14 @@ export function IncidentList({
 
 	if (isError) {
 		return (
-			<div className="p-4 rounded border border-red-900/40 bg-red-950/20 text-center space-y-2">
-				<p className="text-xs text-red-400">
+			<div className="p-4 rounded border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 text-center space-y-2">
+				<p className="text-xs text-red-600 dark:text-red-400">
 					Erro ao carregar lista de chamados.
 				</p>
 				<button
 					type="button"
 					onClick={() => refetch()}
-					className="px-2.5 py-1 rounded text-xs bg-[#18181b] border border-[#27272a] text-zinc-300 hover:text-zinc-100"
+					className="px-2.5 py-1 rounded text-xs bg-zinc-100 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
 				>
 					Tentar novamente
 				</button>
@@ -41,7 +41,7 @@ export function IncidentList({
 
 	if (items.length === 0) {
 		return (
-			<div className="p-8 text-center text-zinc-500 text-xs border border-[#27272a] rounded bg-[#121215]">
+			<div className="p-8 text-center text-zinc-500 text-xs border border-zinc-200 dark:border-[#27272a] rounded bg-white dark:bg-[#121215]">
 				Nenhum chamado encontrado para os filtros selecionados.
 			</div>
 		);

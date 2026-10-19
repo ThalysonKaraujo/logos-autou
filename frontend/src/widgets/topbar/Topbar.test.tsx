@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { OperatorProvider } from "@/features/operator-session";
+import { ThemeProvider } from "@/features/theme";
 import { Topbar } from "./Topbar";
 
 describe("Topbar", () => {
@@ -12,7 +13,9 @@ describe("Topbar", () => {
 		};
 
 		const wrapper = ({ children }: { children: React.ReactNode }) => (
-			<OperatorProvider>{children}</OperatorProvider>
+			<ThemeProvider>
+				<OperatorProvider>{children}</OperatorProvider>
+			</ThemeProvider>
 		);
 
 		const result = render(<Topbar {...defaultProps} />, { wrapper });

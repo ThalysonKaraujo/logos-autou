@@ -75,23 +75,23 @@ export function CockpitPage() {
 	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
 	return (
-		<div className="min-h-screen lg:h-screen lg:max-h-screen bg-[#09090b] text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans lg:overflow-hidden">
+		<div className="min-h-screen lg:h-screen lg:max-h-screen bg-zinc-100 dark:bg-[#09090b] text-zinc-900 dark:text-[#f4f4f5] p-3 sm:p-4 flex flex-col gap-2.5 font-sans lg:overflow-hidden transition-colors">
 			<Topbar onOpenNewIncident={() => setIsCreateModalOpen(true)} />
 
 			{occConflictTraceId && (
-				<div className="bg-[#18181b] border border-amber-900/60 rounded-lg p-3 flex items-start justify-between gap-3 shadow-sm animate-fade-in">
+				<div className="bg-amber-50 dark:bg-[#18181b] border border-amber-300 dark:border-amber-900/60 rounded-lg p-3 flex items-start justify-between gap-3 shadow-xs animate-fade-in">
 					<div className="flex items-start gap-2.5">
 						<span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
 						<div>
 							<div className="flex items-center gap-2">
-								<span className="font-semibold text-xs text-amber-200">
+								<span className="font-semibold text-xs text-amber-900 dark:text-amber-200">
 									Conflito de Concorrência Detectado (409)
 								</span>
-								<span className="font-mono text-xs text-zinc-500">
+								<span className="font-mono text-xs text-amber-700/80 dark:text-zinc-500">
 									X-Request-ID: {occConflictTraceId}
 								</span>
 							</div>
-							<p className="text-xs text-zinc-400 mt-0.5">
+							<p className="text-xs text-amber-800 dark:text-zinc-400 mt-0.5">
 								Este incidente foi alterado por outro operador simultaneamente.
 								Os dados foram sincronizados automaticamente com o estado mais
 								recente.
@@ -101,7 +101,7 @@ export function CockpitPage() {
 					<button
 						type="button"
 						onClick={() => setOccConflictTraceId(null)}
-						className="text-xs text-zinc-500 hover:text-zinc-300 px-1 py-0.5 font-medium"
+						className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 px-1 py-0.5 font-medium transition-colors"
 					>
 						Dispensar
 					</button>
@@ -120,15 +120,15 @@ export function CockpitPage() {
 
 			<main className="flex-1 flex gap-2.5 min-h-0 lg:overflow-hidden">
 				<section
-					className={`w-full lg:w-[40%] lg:min-w-[380px] shrink-0 bg-[#121215] border border-[#27272a] rounded-lg flex flex-col overflow-hidden h-full ${
+					className={`w-full lg:w-[40%] lg:min-w-[380px] shrink-0 bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#27272a] rounded-lg flex flex-col overflow-hidden h-full shadow-xs transition-colors ${
 						selectedId ? "hidden lg:flex" : "flex"
 					}`}
 				>
-					<div className="px-3 py-2 border-b border-[#27272a] flex items-center justify-between text-zinc-400 shrink-0">
-						<span className="font-medium text-xs text-zinc-300">
+					<div className="px-3 py-2 border-b border-zinc-200 dark:border-[#27272a] flex items-center justify-between text-zinc-500 dark:text-zinc-400 shrink-0">
+						<span className="font-medium text-xs text-zinc-800 dark:text-zinc-300">
 							Fila de Triagem
 						</span>
-						<span className="font-mono text-xs text-zinc-500">
+						<span className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
 							Ordem: Alta &gt; Média &gt; Baixa
 						</span>
 					</div>
@@ -141,7 +141,7 @@ export function CockpitPage() {
 						/>
 					</div>
 
-					<div className="px-3 py-2 border-t border-[#27272a] bg-[#121215] flex items-center justify-between text-xs text-zinc-400 shrink-0">
+					<div className="px-3 py-2 border-t border-zinc-200 dark:border-[#27272a] bg-zinc-50 dark:bg-[#121215] flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
 						<span className="font-mono text-[11px] text-zinc-500">
 							{total > 0
 								? `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, total)} de ${total}`
@@ -152,18 +152,18 @@ export function CockpitPage() {
 								type="button"
 								disabled={page <= 1}
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
-								className="px-2 py-1 rounded bg-[#18181b] border border-[#27272a] hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 text-[11px] transition-colors"
+								className="px-2 py-1 rounded bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] hover:border-zinc-400 dark:hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 text-[11px] transition-colors"
 							>
 								← Anterior
 							</button>
-							<span className="font-mono text-[11px] text-zinc-400 px-1">
+							<span className="font-mono text-[11px] text-zinc-500 dark:text-zinc-400 px-1">
 								{page}/{totalPages}
 							</span>
 							<button
 								type="button"
 								disabled={page >= totalPages}
 								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								className="px-2 py-1 rounded bg-[#18181b] border border-[#27272a] hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 hover:text-zinc-100 text-[11px] transition-colors"
+								className="px-2 py-1 rounded bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] hover:border-zinc-400 dark:hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 text-[11px] transition-colors"
 							>
 								Próxima →
 							</button>

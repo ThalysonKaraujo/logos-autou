@@ -8,7 +8,7 @@ export interface StatusBadgeProps {
 export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
 	return (
 		<span
-			className={`text-xs text-zinc-400 font-medium inline-block ${className}`}
+			className={`text-xs text-zinc-600 dark:text-zinc-400 font-medium inline-block ${className}`}
 		>
 			{status}
 		</span>
