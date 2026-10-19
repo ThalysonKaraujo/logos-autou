@@ -31,6 +31,8 @@ export const buildQueryParams = (filters?: IncidentFilters): string => {
 	if (filters.category) params.set("category", filters.category);
 	if (filters.criticality) params.set("criticality", filters.criticality);
 	if (filters.search) params.set("search", filters.search);
+	if (filters.date_from) params.set("date_from", filters.date_from);
+	if (filters.date_to) params.set("date_to", filters.date_to);
 	if (filters.skip !== undefined) params.set("skip", String(filters.skip));
 	if (filters.limit !== undefined) params.set("limit", String(filters.limit));
 	const queryString = params.toString();
