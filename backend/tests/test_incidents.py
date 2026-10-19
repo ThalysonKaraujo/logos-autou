@@ -500,6 +500,48 @@ async def test_update_incident_status_succeeds_and_appends_history():
 
 
 @pytest.mark.asyncio
+async def test_update_incident_status_reopen_to_aberto_clears_assigned_to():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_res = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_res.json()["id"]
+
+        investigate_res = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+                "notes": "Iniciando atendimento",
+            },
+        )
+        assert investigate_res.status_code == 200
+        assert investigate_res.json()["assigned_to"] == "Mariana Silva"
+
+        reopen_res = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Aberto",
+                "expected_version": 2,
+                "analyst_name": "Carlos Mendes",
+                "notes": "Reaberto para nova vistoria técnica",
+            },
+        )
+        assert reopen_res.status_code == 200
+        data = reopen_res.json()
+        assert data["status"] == "Aberto"
+        assert data["assigned_to"] is None
+        assert data["version"] == 3
+        history = data["history"]
+        assert history[-1]["from_status"] == "Em Investigação"
+        assert history[-1]["to_status"] == "Aberto"
+        assert history[-1]["analyst_name"] == "Carlos Mendes"
+        assert history[-1]["notes"] == "Reaberto para nova vistoria técnica"
+
+
+@pytest.mark.asyncio
 async def test_update_incident_succeeds_and_records_audit_diff():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
