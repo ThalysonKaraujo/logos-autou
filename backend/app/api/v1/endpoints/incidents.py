@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -71,6 +72,8 @@ async def list_incidents_endpoint(
     category: IncidentCategory | None = None,
     criticality: IncidentCriticality | None = None,
     search: str | None = None,
+    date_from: date | datetime | None = None,
+    date_to: date | datetime | None = None,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=20, ge=1, le=100),
 ) -> IncidentListResponse:
@@ -79,6 +82,8 @@ async def list_incidents_endpoint(
         category=category,
         criticality=criticality,
         search=search,
+        date_from=date_from,
+        date_to=date_to,
         skip=skip,
         limit=limit,
     )
