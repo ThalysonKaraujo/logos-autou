@@ -6,11 +6,13 @@ import {
 	useIncidents,
 } from "@/entities/incident/api";
 import type {
+	IncidentCategory,
 	IncidentCriticality,
 	IncidentDetail,
 	IncidentFilters,
 	IncidentStatus,
 } from "@/entities/incident/model/types";
+import { type DatePreset, isValidDateRange } from "@/features/triage-filters";
 import { PAGE_SIZE } from "./constants";
 
 export function useCockpitState() {
@@ -21,6 +23,10 @@ export function useCockpitState() {
 		"ALL",
 	);
 	const [status, setStatus] = useState<IncidentStatus | "ALL">("ALL");
+	const [category, setCategory] = useState<IncidentCategory | "ALL">("ALL");
+	const [datePreset, setDatePreset] = useState<DatePreset>("ALL");
+	const [dateFrom, setDateFrom] = useState("");
+	const [dateTo, setDateTo] = useState("");
 	const [occConflictTraceId, setOccConflictTraceId] = useState<string | null>(
 		null,
 	);
@@ -45,12 +51,44 @@ export function useCockpitState() {
 		setPage(1);
 	};
 
+	const handleCategoryChange = (cat: IncidentCategory | "ALL") => {
+		setCategory(cat);
+		setPage(1);
+	};
+
+	const handleDatePresetChange = (preset: DatePreset) => {
+		setDatePreset(preset);
+		setPage(1);
+	};
+
+	const handleDateRangeChange = (from: string, to: string) => {
+		setDateFrom(from);
+		setDateTo(to);
+		setPage(1);
+	};
+
+	const handleResetFilters = () => {
+		setSearch("");
+		setCriticality("ALL");
+		setStatus("ALL");
+		setCategory("ALL");
+		setDatePreset("ALL");
+		setDateFrom("");
+		setDateTo("");
+		setPage(1);
+	};
+
 	const baseFilters: IncidentFilters = useMemo(() => {
 		const f: IncidentFilters = { limit: 100 };
 		if (status !== "ALL") f.status = status;
+		if (category !== "ALL") f.category = category;
 		if (search.trim()) f.search = search.trim();
+		if (isValidDateRange(dateFrom, dateTo)) {
+			if (dateFrom) f.date_from = dateFrom;
+			if (dateTo) f.date_to = dateTo;
+		}
 		return f;
-	}, [status, search]);
+	}, [status, category, search, dateFrom, dateTo]);
 
 	const { data: baseIncidents } = useIncidents(baseFilters);
 
@@ -71,9 +109,14 @@ export function useCockpitState() {
 		};
 		if (criticality !== "ALL") f.criticality = criticality;
 		if (status !== "ALL") f.status = status;
+		if (category !== "ALL") f.category = category;
 		if (search.trim()) f.search = search.trim();
+		if (isValidDateRange(dateFrom, dateTo)) {
+			if (dateFrom) f.date_from = dateFrom;
+			if (dateTo) f.date_to = dateTo;
+		}
 		return f;
-	}, [criticality, status, search, page]);
+	}, [criticality, status, category, search, dateFrom, dateTo, page]);
 
 	const { data: listData } = useIncidents(filters);
 	const total = listData?.total ?? 0;
@@ -155,6 +198,14 @@ export function useCockpitState() {
 		handleCriticalityChange,
 		status,
 		handleStatusChange,
+		category,
+		handleCategoryChange,
+		datePreset,
+		handleDatePresetChange,
+		dateFrom,
+		dateTo,
+		handleDateRangeChange,
+		handleResetFilters,
 		counts,
 		filters,
 		total,

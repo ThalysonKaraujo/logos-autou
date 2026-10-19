@@ -17,6 +17,14 @@ export function CockpitPage() {
 		handleCriticalityChange,
 		status,
 		handleStatusChange,
+		category,
+		handleCategoryChange,
+		datePreset,
+		handleDatePresetChange,
+		dateFrom,
+		dateTo,
+		handleDateRangeChange,
+		handleResetFilters,
 		counts,
 		filters,
 		total,
@@ -53,6 +61,14 @@ export function CockpitPage() {
 				onCriticalityChange={handleCriticalityChange}
 				selectedStatus={status}
 				onStatusChange={handleStatusChange}
+				selectedCategory={category}
+				onCategoryChange={handleCategoryChange}
+				datePreset={datePreset}
+				onDatePresetChange={handleDatePresetChange}
+				dateFrom={dateFrom}
+				dateTo={dateTo}
+				onDateRangeChange={handleDateRangeChange}
+				onResetFilters={handleResetFilters}
 				counts={counts}
 			/>
 
