@@ -1,5 +1,13 @@
 export {
 	type CriticalityCounts,
-	TriageFilters,
+	calculateDateRange,
+	type DatePreset,
+	type DateRange,
+	hasActiveFilters,
+	isValidDateRange,
+} from "./model/triageFilter";
+export {
 	type TriageFiltersProps,
-} from "./TriageFilters";
+	useTriageFilters,
+} from "./model/useTriageFilters";
+export { TriageFilters } from "./ui/TriageFilters";
