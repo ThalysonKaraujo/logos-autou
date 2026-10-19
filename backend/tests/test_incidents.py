@@ -833,4 +833,3 @@ async def test_list_incidents_fails_with_invalid_sort_by():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         res = await client.get("/api/v1/incidents?sort_by=invalid_sort")
         assert res.status_code == 422
-
