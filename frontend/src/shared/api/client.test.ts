@@ -98,4 +98,25 @@ describe("apiClient", () => {
 			"Este incidente foi modificado por outro operador",
 		);
 	});
+
+	it("transforms raw network drop into friendly ApiError with status 0", async () => {
+		globalThis.fetch = vi
+			.fn()
+			.mockRejectedValue(new TypeError("Failed to fetch"));
+
+		let thrownError: unknown;
+		try {
+			await apiClient.get("/incidents");
+		} catch (error) {
+			thrownError = error;
+		}
+
+		expect(thrownError).toBeInstanceOf(ApiError);
+		const apiError = thrownError as ApiError;
+		expect(apiError.status).toBe(0);
+		expect(apiError.isNetworkError).toBe(true);
+		expect(apiError.message).toBe(
+			"Não foi possível conectar ao servidor. Verifique sua conexão com a internet.",
+		);
+	});
 });

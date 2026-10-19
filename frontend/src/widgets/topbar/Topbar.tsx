@@ -1,5 +1,6 @@
 import { useOperator } from "@/features/operator-session";
 import { ThemeToggle } from "@/features/theme";
+import { useNetworkStatus } from "@/shared/lib";
 
 export interface TopbarProps {
 	onOpenNewIncident: () => void;
@@ -7,6 +8,7 @@ export interface TopbarProps {
 
 export function Topbar({ onOpenNewIncident }: TopbarProps) {
 	const { operator, availableOperators, setOperator } = useOperator();
+	const { isOnline } = useNetworkStatus();
 
 	return (
 		<header className="bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#27272a] rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-xs transition-colors">
@@ -24,11 +26,21 @@ export function Topbar({ onOpenNewIncident }: TopbarProps) {
 				<div className="flex items-center gap-1.5 pl-3 border-l border-zinc-200 dark:border-[#27272a]">
 					<span
 						role="status"
-						aria-label="Sistema conectado"
-						className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+						aria-label={isOnline ? "Sistema conectado" : "Sem conexão de rede"}
+						className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+							isOnline
+								? "bg-emerald-500 animate-pulse"
+								: "bg-amber-500 animate-ping"
+						}`}
 					/>
-					<span className="text-xs text-zinc-500 dark:text-zinc-400">
-						Conectado
+					<span
+						className={`text-xs ${
+							isOnline
+								? "text-zinc-500 dark:text-zinc-400"
+								: "text-amber-600 dark:text-amber-400 font-medium"
+						}`}
+					>
+						{isOnline ? "Conectado" : "Sem conexão"}
 					</span>
 				</div>
 			</div>

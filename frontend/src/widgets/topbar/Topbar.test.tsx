@@ -46,4 +46,27 @@ describe("Topbar", () => {
 
 		expect(props.onOpenNewIncident).toHaveBeenCalledTimes(1);
 	});
+
+	it("renders offline indicator when network is disconnected", () => {
+		const originalOnLine = navigator.onLine;
+		Object.defineProperty(navigator, "onLine", {
+			configurable: true,
+			value: false,
+			writable: true,
+		});
+
+		renderTopbar();
+
+		expect(screen.getByText("Sem conexão")).toBeInTheDocument();
+		expect(screen.getByRole("status")).toHaveAttribute(
+			"aria-label",
+			"Sem conexão de rede",
+		);
+
+		Object.defineProperty(navigator, "onLine", {
+			configurable: true,
+			value: originalOnLine,
+			writable: true,
+		});
+	});
 });
