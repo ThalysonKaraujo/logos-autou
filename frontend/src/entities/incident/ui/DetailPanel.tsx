@@ -1,3 +1,4 @@
+import { CheckCircle2, HelpCircle, UserCheck } from "lucide-react";
 import { useState } from "react";
 import {
 	useIncidentDetail,
@@ -178,14 +179,14 @@ export function DetailPanel({
 					</div>
 				</div>
 
-				<div className="border-t border-zinc-200 dark:border-[#27272a] pt-3 space-y-2">
+				<div className="border border-zinc-200 dark:border-[#27272a] bg-zinc-50/60 dark:bg-[#141418] rounded-lg p-3 space-y-2.5">
 					<div className="flex items-center justify-between">
-						<span className="text-xs font-medium text-zinc-700 dark:text-zinc-400">
+						<span className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
 							Despacho Operacional
 						</span>
 						<span className="text-xs font-mono text-zinc-500">
 							Operador:{" "}
-							<span className="text-zinc-800 dark:text-zinc-300">
+							<span className="text-zinc-800 dark:text-zinc-300 font-medium">
 								{operator}
 							</span>
 						</span>
@@ -196,7 +197,7 @@ export function DetailPanel({
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						placeholder="Nota operacional de despacho (opcional)..."
-						className="w-full bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] rounded px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors"
+						className="w-full bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] rounded px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors"
 					/>
 
 					{actionError && (
@@ -213,9 +214,10 @@ export function DetailPanel({
 								updateStatusMutation.isPending
 							}
 							onClick={() => handleStatusChange("Em Investigação")}
-							className="py-1.5 px-3 rounded text-xs font-medium bg-zinc-100 dark:bg-[#18181b] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-[#27272a] hover:bg-zinc-200 dark:hover:bg-[#27272a] hover:border-zinc-300 dark:hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center"
+							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/60 dark:hover:bg-blue-900/50 dark:hover:border-blue-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							Assumir Investigação
+							<UserCheck className="w-3.5 h-3.5 shrink-0" />
+							<span>Assumir Investigação</span>
 						</button>
 						<button
 							type="button"
@@ -223,9 +225,10 @@ export function DetailPanel({
 								incident.status === "Fechado" || updateStatusMutation.isPending
 							}
 							onClick={() => handleStatusChange("Fechado")}
-							className="py-1.5 px-3 rounded text-xs font-medium bg-zinc-100 dark:bg-[#18181b] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-[#27272a] hover:bg-zinc-200 dark:hover:bg-[#27272a] hover:border-zinc-300 dark:hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center"
+							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60 dark:hover:bg-emerald-900/50 dark:hover:border-emerald-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							Fechar Chamado
+							<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+							<span>Fechar Chamado</span>
 						</button>
 						<button
 							type="button"
@@ -234,9 +237,10 @@ export function DetailPanel({
 								updateStatusMutation.isPending
 							}
 							onClick={() => handleStatusChange("Inconclusivo")}
-							className="py-1.5 px-3 rounded text-xs font-medium bg-zinc-100 dark:bg-[#18181b] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-[#27272a] hover:bg-zinc-200 dark:hover:bg-[#27272a] hover:border-zinc-300 dark:hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center"
+							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-200 hover:border-zinc-300 dark:bg-[#18181b] dark:text-zinc-300 dark:border-[#27272a] dark:hover:bg-[#27272a] dark:hover:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							Inconclusivo
+							<HelpCircle className="w-3.5 h-3.5 shrink-0" />
+							<span>Inconclusivo</span>
 						</button>
 					</div>
 				</div>

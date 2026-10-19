@@ -14,7 +14,8 @@ export function IncidentList({
 	onSelect,
 	filters,
 }: IncidentListProps) {
-	const { data, isLoading, isError, refetch } = useIncidents(filters);
+	const { data, isLoading, isError, isPlaceholderData, refetch } =
+		useIncidents(filters);
 
 	if (isLoading) {
 		return <IncidentSkeleton count={5} />;
@@ -48,7 +49,11 @@ export function IncidentList({
 	}
 
 	return (
-		<div className="space-y-1.5 w-full">
+		<div
+			className={`space-y-1.5 w-full transition-opacity duration-150 ${
+				isPlaceholderData ? "opacity-60 pointer-events-none" : "opacity-100"
+			}`}
+		>
 			{items.map((incident) => (
 				<IncidentCard
 					key={incident.id}
