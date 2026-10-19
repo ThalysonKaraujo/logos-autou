@@ -10,6 +10,7 @@ describe("QueueSortSelect", () => {
 		const select = screen.getByLabelText("Ordenar fila de triagem");
 		expect(select).toBeInTheDocument();
 		expect(select).toHaveValue("criticality_desc");
+		expect(screen.getAllByText("Prioridade: Alta > Baixa")).toHaveLength(2);
 
 		fireEvent.change(select, { target: { value: "created_at_desc" } });
 		expect(onChange).toHaveBeenCalledWith("created_at_desc");
