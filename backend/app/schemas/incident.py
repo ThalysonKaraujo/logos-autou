@@ -40,6 +40,15 @@ class IncidentCreate(IncidentBase):
     pass
 
 
+class IncidentUpdate(IncidentBase):
+    expected_version: int = Field(
+        ge=1,
+        validation_alias=AliasChoices("expected_version", "version"),
+    )
+    analyst_name: str = Field(min_length=2, max_length=100)
+    notes: str | None = Field(default=None, max_length=500)
+
+
 class IncidentStatusUpdate(BaseModel):
     status: IncidentStatus
     expected_version: int = Field(

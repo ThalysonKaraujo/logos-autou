@@ -496,3 +496,89 @@ async def test_update_incident_status_succeeds_and_appends_history():
         assert history[2]["to_status"] == "Fechado"
         assert history[2]["analyst_name"] == "Carlos Mendes"
         assert history[2]["notes"] == "Veículo removido e pista liberada"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_succeeds_and_records_audit_diff():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        update_payload = {
+            **get_valid_incident_payload(),
+            "criticality": "Média",
+            "location": "Rodovia Presidente Dutra, Km 185",
+            "expected_version": 1,
+            "analyst_name": "Mariana Silva",
+            "notes": "Confirmado pela PRF no local",
+        }
+
+        update_response = await client.put(
+            f"/api/v1/incidents/{incident_id}",
+            json=update_payload,
+        )
+        assert update_response.status_code == 200
+        data = update_response.json()
+        assert data["criticality"] == "Média"
+        assert data["location"] == "Rodovia Presidente Dutra, Km 185"
+        assert data["assigned_to"] == "Mariana Silva"
+        assert data["version"] == 2
+        assert len(data["history"]) == 2
+        assert data["history"][1]["action"] == "UPDATED"
+        assert data["history"][1]["analyst_name"] == "Mariana Silva"
+        assert "Criticidade (Alta → Média)" in data["history"][1]["notes"]
+        assert "Localização" in data["history"][1]["notes"]
+        assert "Confirmado pela PRF no local" in data["history"][1]["notes"]
+
+
+@pytest.mark.asyncio
+async def test_update_incident_returns_409_on_version_conflict():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+            },
+        )
+
+        conflict_response = await client.put(
+            f"/api/v1/incidents/{incident_id}",
+            json={
+                **get_valid_incident_payload(),
+                "criticality": "Baixa",
+                "expected_version": 1,
+                "analyst_name": "Carlos Mendes",
+            },
+        )
+        assert conflict_response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_update_incident_returns_400_when_no_changes():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_response = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_response.json()["id"]
+
+        no_change_response = await client.put(
+            f"/api/v1/incidents/{incident_id}",
+            json={
+                **get_valid_incident_payload(),
+                "expected_version": 1,
+                "analyst_name": "Mariana Silva",
+            },
+        )
+        assert no_change_response.status_code == 400
