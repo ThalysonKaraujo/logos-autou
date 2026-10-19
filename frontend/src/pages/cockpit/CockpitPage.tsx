@@ -7,11 +7,13 @@ import {
 } from "@/entities/incident/api";
 import type {
 	IncidentCriticality,
+	IncidentDetail,
 	IncidentFilters,
 	IncidentStatus,
 } from "@/entities/incident/model/types";
 import { DetailPanel, IncidentList } from "@/entities/incident/ui";
 import { CreateIncidentModal } from "@/features/create-incident";
+import { EditIncidentModal } from "@/features/edit-incident";
 import { TriageFilters } from "@/features/triage-filters";
 import { Topbar } from "@/widgets/topbar";
 
@@ -29,6 +31,9 @@ export function CockpitPage() {
 		null,
 	);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+	const [editingIncident, setEditingIncident] = useState<IncidentDetail | null>(
+		null,
+	);
 	const [page, setPage] = useState(1);
 
 	const handleSearchChange = (val: string) => {
@@ -211,6 +216,7 @@ export function CockpitPage() {
 						onConflictDetected={(traceId) =>
 							setOccConflictTraceId(traceId || "occ-detected")
 						}
+						onEditIncident={(incident) => setEditingIncident(incident)}
 					/>
 				</section>
 			</main>
@@ -222,6 +228,15 @@ export function CockpitPage() {
 					setSelectedId(incident.id);
 					setIsCreateModalOpen(false);
 				}}
+			/>
+
+			<EditIncidentModal
+				incident={editingIncident}
+				isOpen={Boolean(editingIncident)}
+				onClose={() => setEditingIncident(null)}
+				onConflictDetected={(traceId) =>
+					setOccConflictTraceId(traceId || "occ-detected")
+				}
 			/>
 		</div>
 	);
