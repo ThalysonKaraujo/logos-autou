@@ -9,6 +9,7 @@ from app.schemas.incident import (
     IncidentCategory,
     IncidentCreate,
     IncidentCriticality,
+    IncidentSortBy,
     IncidentStatus,
     IncidentStatusUpdate,
     IncidentUpdate,
@@ -71,6 +72,7 @@ class IncidentService:
         search: str | None = None,
         date_from: date | datetime | None = None,
         date_to: date | datetime | None = None,
+        sort_by: IncidentSortBy = IncidentSortBy.CRITICALITY_DESC,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[Incident], int]:
@@ -81,6 +83,7 @@ class IncidentService:
             search=search,
             date_from=date_from,
             date_to=date_to,
+            sort_by=sort_by.value if isinstance(sort_by, IncidentSortBy) else sort_by,
             skip=skip,
             limit=limit,
         )

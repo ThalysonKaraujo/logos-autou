@@ -57,6 +57,7 @@ class IncidentRepository:
         search: str | None = None,
         date_from: date | datetime | None = None,
         date_to: date | datetime | None = None,
+        sort_by: str = "criticality_desc",
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[Incident], int]:
@@ -94,14 +95,21 @@ class IncidentRepository:
             else_=4,
         )
 
+        order_clauses = {
+            "criticality_desc": [criticality_priority.asc(), Incident.created_at.asc()],
+            "criticality_asc": [criticality_priority.desc(), Incident.created_at.asc()],
+            "created_at_desc": [Incident.created_at.desc()],
+            "created_at_asc": [Incident.created_at.asc()],
+            "updated_at_desc": [Incident.updated_at.desc()],
+        }
+        order_by_clause = order_clauses.get(
+            sort_by, [criticality_priority.asc(), Incident.created_at.asc()]
+        )
+
         statement = select(Incident)
         if filters:
             statement = statement.where(*filters)
-        statement = (
-            statement.order_by(criticality_priority.asc(), Incident.created_at.asc())
-            .offset(skip)
-            .limit(limit)
-        )
+        statement = statement.order_by(*order_by_clause).offset(skip).limit(limit)
 
         result = await self.db.execute(statement)
         items = list(result.scalars().all())

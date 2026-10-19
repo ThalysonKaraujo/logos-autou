@@ -691,3 +691,104 @@ async def test_create_incident_with_custom_date():
         assert filter_res.status_code == 200
         assert filter_res.json()["total"] == 1
         assert filter_res.json()["items"][0]["title"] == "Incidente Retroativo"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_sorted_by_criticality_asc():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        p_alta = get_valid_incident_payload()
+        p_alta["title"] = "Incidente Alta"
+        p_alta["criticality"] = "Alta"
+        p_alta["truck_plate"] = "ALT1111"
+        await client.post("/api/v1/incidents", json=p_alta)
+
+        p_baixa = get_valid_incident_payload()
+        p_baixa["title"] = "Incidente Baixa"
+        p_baixa["criticality"] = "Baixa"
+        p_baixa["truck_plate"] = "BAX1111"
+        await client.post("/api/v1/incidents", json=p_baixa)
+
+        p_media = get_valid_incident_payload()
+        p_media["title"] = "Incidente Média"
+        p_media["criticality"] = "Média"
+        p_media["truck_plate"] = "MED1111"
+        await client.post("/api/v1/incidents", json=p_media)
+
+        res = await client.get("/api/v1/incidents?sort_by=criticality_asc")
+        assert res.status_code == 200
+        items = res.json()["items"]
+        assert len(items) == 3
+        assert items[0]["criticality"] == "Baixa"
+        assert items[1]["criticality"] == "Média"
+        assert items[2]["criticality"] == "Alta"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_sorted_by_created_at_desc_and_asc():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        p1 = get_valid_incident_payload()
+        p1["title"] = "Primeiro Criado"
+        p1["criticality"] = "Alta"
+        p1["truck_plate"] = "AAA1111"
+        p1["created_at"] = "2026-10-01"
+        await client.post("/api/v1/incidents", json=p1)
+
+        p2 = get_valid_incident_payload()
+        p2["title"] = "Segundo Criado"
+        p2["criticality"] = "Baixa"
+        p2["truck_plate"] = "BBB2222"
+        p2["created_at"] = "2026-10-15"
+        await client.post("/api/v1/incidents", json=p2)
+
+        res_desc = await client.get("/api/v1/incidents?sort_by=created_at_desc")
+        assert res_desc.status_code == 200
+        items_desc = res_desc.json()["items"]
+        assert items_desc[0]["title"] == "Segundo Criado"
+        assert items_desc[1]["title"] == "Primeiro Criado"
+
+        res_asc = await client.get("/api/v1/incidents?sort_by=created_at_asc")
+        assert res_asc.status_code == 200
+        items_asc = res_asc.json()["items"]
+        assert items_asc[0]["title"] == "Primeiro Criado"
+        assert items_asc[1]["title"] == "Segundo Criado"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_sorted_by_updated_at_desc():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        p1 = get_valid_incident_payload()
+        p1["title"] = "Chamado Sem Atualizacao"
+        p1["truck_plate"] = "SEM1111"
+        await client.post("/api/v1/incidents", json=p1)
+
+        p2 = get_valid_incident_payload()
+        p2["title"] = "Chamado Com Atualizacao"
+        p2["truck_plate"] = "COM2222"
+        r2 = await client.post("/api/v1/incidents", json=p2)
+        id_2 = r2.json()["id"]
+
+        await client.patch(
+            f"/api/v1/incidents/{id_2}/status",
+            json={
+                "status": "Em Investigação",
+                "expected_version": 1,
+                "analyst_name": "Carlos Mendes",
+            },
+        )
+
+        res = await client.get("/api/v1/incidents?sort_by=updated_at_desc")
+        assert res.status_code == 200
+        items = res.json()["items"]
+        assert items[0]["title"] == "Chamado Com Atualizacao"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_fails_with_invalid_sort_by():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.get("/api/v1/incidents?sort_by=invalid_sort")
+        assert res.status_code == 422
+

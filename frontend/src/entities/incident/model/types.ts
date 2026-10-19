@@ -13,6 +13,13 @@ export type IncidentStatus =
 	| "Fechado"
 	| "Inconclusivo";
 
+export type IncidentSortBy =
+	| "criticality_desc"
+	| "criticality_asc"
+	| "created_at_desc"
+	| "created_at_asc"
+	| "updated_at_desc";
+
 export interface Incident {
 	id: string;
 	title: string;
@@ -56,6 +63,7 @@ export interface IncidentFilters {
 	search?: string;
 	date_from?: string;
 	date_to?: string;
+	sort_by?: IncidentSortBy;
 	skip?: number;
 	limit?: number;
 }

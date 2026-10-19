@@ -5,6 +5,7 @@ import { TriageFilters } from "@/features/triage-filters";
 import { Topbar } from "@/widgets/topbar";
 import { useCockpitState } from "../model/useCockpitState";
 import { ConflictBanner } from "./ConflictBanner";
+import { QueueSortSelect } from "./QueueSortSelect";
 
 export function CockpitPage() {
 	const {
@@ -24,6 +25,8 @@ export function CockpitPage() {
 		dateFrom,
 		dateTo,
 		handleDateRangeChange,
+		sortBy,
+		handleSortByChange,
 		handleResetFilters,
 		counts,
 		filters,
@@ -82,9 +85,7 @@ export function CockpitPage() {
 						<span className="font-medium text-xs text-zinc-800 dark:text-zinc-300">
 							Fila de Triagem
 						</span>
-						<span className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
-							Ordem: Alta &gt; Média &gt; Baixa
-						</span>
+						<QueueSortSelect value={sortBy} onChange={handleSortByChange} />
 					</div>
 
 					<div className="flex-1 overflow-y-auto p-1.5">

@@ -51,6 +51,7 @@ describe("useCockpitState", () => {
 		expect(result.current.datePreset).toBe("ALL");
 		expect(result.current.dateFrom).toBe("");
 		expect(result.current.dateTo).toBe("");
+		expect(result.current.sortBy).toBe("criticality_desc");
 		expect(result.current.page).toBe(1);
 		expect(result.current.pageSize).toBe(10);
 		expect(result.current.occConflictTraceId).toBeNull();
@@ -99,6 +100,13 @@ describe("useCockpitState", () => {
 		expect(result.current.page).toBe(1);
 
 		act(() => {
+			result.current.handleSortByChange("created_at_desc");
+		});
+		expect(result.current.sortBy).toBe("created_at_desc");
+		expect(result.current.filters.sort_by).toBe("created_at_desc");
+		expect(result.current.page).toBe(1);
+
+		act(() => {
 			result.current.handleResetFilters();
 		});
 		expect(result.current.search).toBe("");
@@ -108,6 +116,7 @@ describe("useCockpitState", () => {
 		expect(result.current.datePreset).toBe("ALL");
 		expect(result.current.dateFrom).toBe("");
 		expect(result.current.dateTo).toBe("");
+		expect(result.current.sortBy).toBe("criticality_desc");
 		expect(result.current.page).toBe(1);
 	});
 

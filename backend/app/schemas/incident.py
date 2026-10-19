@@ -26,6 +26,14 @@ class IncidentStatus(str, Enum):
     INCONCLUSIVO = "Inconclusivo"
 
 
+class IncidentSortBy(str, Enum):
+    CRITICALITY_DESC = "criticality_desc"
+    CRITICALITY_ASC = "criticality_asc"
+    CREATED_AT_DESC = "created_at_desc"
+    CREATED_AT_ASC = "created_at_asc"
+    UPDATED_AT_DESC = "updated_at_desc"
+
+
 class IncidentBase(BaseModel):
     title: str = Field(min_length=3, max_length=150)
     description: str = Field(min_length=5)

@@ -15,6 +15,7 @@ from app.schemas.incident import (
     IncidentDetailResponse,
     IncidentListResponse,
     IncidentResponse,
+    IncidentSortBy,
     IncidentStatus,
     IncidentStatusUpdate,
     IncidentUpdate,
@@ -74,6 +75,7 @@ async def list_incidents_endpoint(
     search: str | None = None,
     date_from: date | datetime | None = None,
     date_to: date | datetime | None = None,
+    sort_by: IncidentSortBy = IncidentSortBy.CRITICALITY_DESC,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=20, ge=1, le=100),
 ) -> IncidentListResponse:
@@ -84,6 +86,7 @@ async def list_incidents_endpoint(
         search=search,
         date_from=date_from,
         date_to=date_to,
+        sort_by=sort_by,
         skip=skip,
         limit=limit,
     )
