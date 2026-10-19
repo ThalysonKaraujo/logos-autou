@@ -131,7 +131,7 @@ class IncidentRepository:
             )
             .values(
                 status=new_status,
-                assigned_to=analyst_name,
+                assigned_to=None if new_status == "Aberto" else analyst_name,
                 version=Incident.version + 1,
                 updated_at=func.now(),
             )

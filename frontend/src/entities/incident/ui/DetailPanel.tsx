@@ -1,4 +1,10 @@
-import { CheckCircle2, HelpCircle, Pencil, UserCheck } from "lucide-react";
+import {
+	CheckCircle2,
+	HelpCircle,
+	Pencil,
+	RotateCcw,
+	UserCheck,
+} from "lucide-react";
 import { useState } from "react";
 import {
 	useIncidentDetail,
@@ -232,7 +238,18 @@ export function DetailPanel({
 						</div>
 					)}
 
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+						<button
+							type="button"
+							disabled={
+								incident.status === "Aberto" || updateStatusMutation.isPending
+							}
+							onClick={() => handleStatusChange("Aberto")}
+							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60 dark:hover:bg-amber-900/50 dark:hover:border-amber-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+						>
+							<RotateCcw className="w-3.5 h-3.5 shrink-0" />
+							<span>Reabrir Chamado</span>
+						</button>
 						<button
 							type="button"
 							disabled={
