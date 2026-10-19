@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 120
+
     BACKEND_CORS_ORIGINS: list[str] | str = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
