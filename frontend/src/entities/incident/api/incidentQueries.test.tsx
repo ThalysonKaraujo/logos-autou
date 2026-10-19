@@ -83,6 +83,7 @@ describe("incidentQueries", () => {
 					category: "Acidente com Veículo",
 					date_from: "2026-10-01",
 					date_to: "2026-10-19",
+					sort_by: "created_at_desc",
 					limit: 10,
 				}),
 			{ wrapper },
@@ -99,6 +100,7 @@ describe("incidentQueries", () => {
 		expect(requestedUrl).toContain("status=Aberto");
 		expect(requestedUrl).toContain("date_from=2026-10-01");
 		expect(requestedUrl).toContain("date_to=2026-10-19");
+		expect(requestedUrl).toContain("sort_by=created_at_desc");
 		expect(requestedUrl).toContain("limit=10");
 	});
 
