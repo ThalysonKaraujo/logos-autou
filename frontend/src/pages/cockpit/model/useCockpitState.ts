@@ -10,6 +10,7 @@ import type {
 	IncidentCriticality,
 	IncidentDetail,
 	IncidentFilters,
+	IncidentSortBy,
 	IncidentStatus,
 } from "@/entities/incident/model/types";
 import { type DatePreset, isValidDateRange } from "@/features/triage-filters";
@@ -27,6 +28,7 @@ export function useCockpitState() {
 	const [datePreset, setDatePreset] = useState<DatePreset>("ALL");
 	const [dateFrom, setDateFrom] = useState("");
 	const [dateTo, setDateTo] = useState("");
+	const [sortBy, setSortBy] = useState<IncidentSortBy>("criticality_desc");
 	const [occConflictTraceId, setOccConflictTraceId] = useState<string | null>(
 		null,
 	);
@@ -67,6 +69,11 @@ export function useCockpitState() {
 		setPage(1);
 	};
 
+	const handleSortByChange = (val: IncidentSortBy) => {
+		setSortBy(val);
+		setPage(1);
+	};
+
 	const handleResetFilters = () => {
 		setSearch("");
 		setCriticality("ALL");
@@ -75,6 +82,7 @@ export function useCockpitState() {
 		setDatePreset("ALL");
 		setDateFrom("");
 		setDateTo("");
+		setSortBy("criticality_desc");
 		setPage(1);
 	};
 
@@ -106,6 +114,7 @@ export function useCockpitState() {
 		const f: IncidentFilters = {
 			skip: (page - 1) * PAGE_SIZE,
 			limit: PAGE_SIZE,
+			sort_by: sortBy,
 		};
 		if (criticality !== "ALL") f.criticality = criticality;
 		if (status !== "ALL") f.status = status;
@@ -116,7 +125,7 @@ export function useCockpitState() {
 			if (dateTo) f.date_to = dateTo;
 		}
 		return f;
-	}, [criticality, status, category, search, dateFrom, dateTo, page]);
+	}, [criticality, status, category, search, dateFrom, dateTo, sortBy, page]);
 
 	const { data: listData } = useIncidents(filters);
 	const total = listData?.total ?? 0;
@@ -205,6 +214,8 @@ export function useCockpitState() {
 		dateFrom,
 		dateTo,
 		handleDateRangeChange,
+		sortBy,
+		handleSortByChange,
 		handleResetFilters,
 		counts,
 		filters,
