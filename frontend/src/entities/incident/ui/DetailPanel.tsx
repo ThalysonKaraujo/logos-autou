@@ -9,6 +9,7 @@ import type {
 	IncidentStatus,
 } from "@/entities/incident/model/types";
 import { useOperator } from "@/features/operator-session";
+import { formatShortDate } from "@/shared/lib";
 import { CriticalityDot, IncidentSkeleton, PlateBadge } from "@/shared/ui";
 
 export interface DetailPanelProps {
@@ -169,7 +170,7 @@ export function DetailPanel({
 					</p>
 				</div>
 
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+				<div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
 					<div className="p-2.5 rounded bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a]">
 						<span className="text-zinc-500 block text-xs">Categoria</span>
 						<span className="text-zinc-800 dark:text-zinc-200 font-medium mt-0.5 block">
@@ -183,12 +184,20 @@ export function DetailPanel({
 						</span>
 					</div>
 					<div className="p-2.5 rounded bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a]">
+						<span className="text-zinc-500 block text-xs">
+							Data da Ocorrência
+						</span>
+						<span className="font-mono text-zinc-700 dark:text-zinc-300 mt-0.5 block truncate">
+							{formatShortDate(incident.created_at)}
+						</span>
+					</div>
+					<div className="p-2.5 rounded bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a]">
 						<span className="text-zinc-500 block text-xs">Atualizado em</span>
 						<span className="font-mono text-zinc-700 dark:text-zinc-300 mt-0.5 block truncate">
 							{new Date(incident.updated_at).toLocaleTimeString("pt-BR")}
 						</span>
 					</div>
-					<div className="col-span-1 sm:col-span-3 p-2.5 rounded bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a]">
+					<div className="col-span-1 sm:col-span-4 p-2.5 rounded bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a]">
 						<span className="text-zinc-500 block text-xs">Localização</span>
 						<span className="text-zinc-800 dark:text-zinc-200 font-medium mt-0.5 block">
 							{incident.location}

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from uuid import UUID
 
@@ -37,7 +37,7 @@ class IncidentBase(BaseModel):
 
 
 class IncidentCreate(IncidentBase):
-    pass
+    created_at: date | datetime | None = None
 
 
 class IncidentUpdate(IncidentBase):

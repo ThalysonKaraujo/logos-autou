@@ -1,4 +1,5 @@
 import type { Incident } from "@/entities/incident/model/types";
+import { formatRelativeTime, formatShortDate } from "@/shared/lib";
 import { CriticalityDot, PlateBadge, StatusBadge } from "@/shared/ui";
 
 export interface IncidentCardProps {
@@ -7,26 +8,12 @@ export interface IncidentCardProps {
 	onSelect: () => void;
 }
 
-const formatRelativeTime = (isoString: string): string => {
-	try {
-		const diff = Date.now() - new Date(isoString).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return "Agora";
-		if (minutes < 60) return `${minutes} min`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h`;
-		const days = Math.floor(hours / 24);
-		return `${days}d`;
-	} catch {
-		return "Recente";
-	}
-};
-
 export function IncidentCard({
 	incident,
 	isSelected,
 	onSelect,
 }: IncidentCardProps) {
+	const formattedDate = formatShortDate(incident.created_at);
 	const timeAgo = formatRelativeTime(incident.created_at);
 
 	return (
@@ -56,7 +43,7 @@ export function IncidentCard({
 					</span>
 				</div>
 				<span className="font-mono text-xs text-zinc-500 shrink-0">
-					{timeAgo}
+					{formattedDate} • {timeAgo}
 				</span>
 			</div>
 

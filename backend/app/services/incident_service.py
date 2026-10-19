@@ -1,3 +1,4 @@
+from datetime import UTC, date, datetime, time
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -14,11 +15,20 @@ from app.schemas.incident import (
 )
 
 
+def _resolve_created_at(value: date | datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    return datetime.combine(value, time(12, 0), tzinfo=UTC)
+
+
 class IncidentService:
     def __init__(self, repository: IncidentRepository) -> None:
         self.repository = repository
 
     async def create_incident(self, payload: IncidentCreate) -> Incident:
+        custom_created_at = _resolve_created_at(payload.created_at)
         incident = Incident(
             title=payload.title,
             description=payload.description,
@@ -29,6 +39,7 @@ class IncidentService:
             truck_plate=payload.truck_plate,
             driver_name=payload.driver_name,
             version=1,
+            **({"created_at": custom_created_at} if custom_created_at else {}),
         )
 
         history_entry = IncidentHistory(
@@ -58,6 +69,8 @@ class IncidentService:
         category: IncidentCategory | None = None,
         criticality: IncidentCriticality | None = None,
         search: str | None = None,
+        date_from: date | datetime | None = None,
+        date_to: date | datetime | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[Incident], int]:
@@ -66,6 +79,8 @@ class IncidentService:
             category=category.value if category else None,
             criticality=criticality.value if criticality else None,
             search=search,
+            date_from=date_from,
+            date_to=date_to,
             skip=skip,
             limit=limit,
         )

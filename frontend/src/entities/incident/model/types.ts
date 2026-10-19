@@ -54,6 +54,8 @@ export interface IncidentFilters {
 	category?: IncidentCategory;
 	criticality?: IncidentCriticality;
 	search?: string;
+	date_from?: string;
+	date_to?: string;
 	skip?: number;
 	limit?: number;
 }
@@ -67,6 +69,7 @@ export interface IncidentCreateInput {
 	truck_plate: string;
 	driver_name: string;
 	assigned_to?: string | null;
+	created_at?: string;
 }
 
 export interface IncidentUpdateInput {

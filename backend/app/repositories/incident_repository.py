@@ -1,3 +1,4 @@
+from datetime import UTC, date, datetime, time
 from uuid import UUID
 
 from sqlalchemy import case, func, or_, select, update
@@ -5,6 +6,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.incident import Incident, IncidentHistory
+
+
+def _normalize_date_from(value: date | datetime) -> datetime:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    return datetime.combine(value, time.min, tzinfo=UTC)
+
+
+def _normalize_date_to(value: date | datetime) -> datetime:
+    if isinstance(value, datetime):
+        dt = value if value.tzinfo else value.replace(tzinfo=UTC)
+        if dt.hour == 0 and dt.minute == 0 and dt.second == 0 and dt.microsecond == 0:
+            return dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+        return dt
+    return datetime.combine(value, time.max, tzinfo=UTC)
 
 
 class IncidentRepository:
@@ -39,6 +55,8 @@ class IncidentRepository:
         category: str | None = None,
         criticality: str | None = None,
         search: str | None = None,
+        date_from: date | datetime | None = None,
+        date_to: date | datetime | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[Incident], int]:
@@ -55,8 +73,13 @@ class IncidentRepository:
                 or_(
                     Incident.title.ilike(search_pattern),
                     Incident.truck_plate.ilike(search_pattern),
+                    Incident.location.ilike(search_pattern),
                 )
             )
+        if date_from:
+            filters.append(Incident.created_at >= _normalize_date_from(date_from))
+        if date_to:
+            filters.append(Incident.created_at <= _normalize_date_to(date_to))
 
         count_statement = select(func.count(Incident.id))
         if filters:

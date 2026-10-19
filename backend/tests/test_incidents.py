@@ -1,12 +1,13 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.core.database import AsyncSessionLocal
 from app.main import app
-from app.models.incident import IncidentHistory
+from app.models.incident import Incident, IncidentHistory
 
 
 def get_valid_incident_payload() -> dict[str, str]:
@@ -582,3 +583,111 @@ async def test_update_incident_returns_400_when_no_changes():
             },
         )
         assert no_change_response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_with_date_range_and_priority_filters():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        p1 = get_valid_incident_payload()
+        p1["title"] = "Incidente Antigo Alta"
+        p1["criticality"] = "Alta"
+        p1["truck_plate"] = "OLD1A11"
+        r1 = await client.post("/api/v1/incidents", json=p1)
+        id_1 = UUID(r1.json()["id"])
+
+        p2 = get_valid_incident_payload()
+        p2["title"] = "Incidente Período Alta"
+        p2["criticality"] = "Alta"
+        p2["truck_plate"] = "MID2B22"
+        r2 = await client.post("/api/v1/incidents", json=p2)
+        id_2 = UUID(r2.json()["id"])
+
+        p3 = get_valid_incident_payload()
+        p3["title"] = "Incidente Período Baixa"
+        p3["criticality"] = "Baixa"
+        p3["truck_plate"] = "MID3C33"
+        r3 = await client.post("/api/v1/incidents", json=p3)
+        id_3 = UUID(r3.json()["id"])
+
+        p4 = get_valid_incident_payload()
+        p4["title"] = "Incidente Recente Alta"
+        p4["criticality"] = "Alta"
+        p4["truck_plate"] = "NEW4D44"
+        r4 = await client.post("/api/v1/incidents", json=p4)
+        id_4 = UUID(r4.json()["id"])
+
+        async with AsyncSessionLocal() as session:
+            await session.execute(
+                update(Incident)
+                .where(Incident.id == id_1)
+                .values(created_at=datetime(2026, 10, 1, 10, 0, tzinfo=UTC))
+            )
+            await session.execute(
+                update(Incident)
+                .where(Incident.id == id_2)
+                .values(created_at=datetime(2026, 10, 10, 14, 30, tzinfo=UTC))
+            )
+            await session.execute(
+                update(Incident)
+                .where(Incident.id == id_3)
+                .values(created_at=datetime(2026, 10, 10, 18, 0, tzinfo=UTC))
+            )
+            await session.execute(
+                update(Incident)
+                .where(Incident.id == id_4)
+                .values(created_at=datetime(2026, 10, 20, 9, 0, tzinfo=UTC))
+            )
+            await session.commit()
+
+        res_date_only = await client.get(
+            "/api/v1/incidents?date_from=2026-10-05&date_to=2026-10-15"
+        )
+        assert res_date_only.status_code == 200
+        data_date_only = res_date_only.json()
+        assert data_date_only["total"] == 2
+
+        res_combined = await client.get(
+            "/api/v1/incidents?date_from=2026-10-05&date_to=2026-10-15&criticality=Alta"
+        )
+        assert res_combined.status_code == 200
+        data_combined = res_combined.json()
+        assert data_combined["total"] == 1
+        assert data_combined["items"][0]["title"] == "Incidente Período Alta"
+
+
+@pytest.mark.asyncio
+async def test_list_incidents_search_by_location():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload = get_valid_incident_payload()
+        payload["title"] = "Falha no freio"
+        payload["location"] = "Rodovia Fernão Dias, Km 45"
+        await client.post("/api/v1/incidents", json=payload)
+
+        response = await client.get("/api/v1/incidents?search=Fernão Dias")
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["location"] == "Rodovia Fernão Dias, Km 45"
+
+
+@pytest.mark.asyncio
+async def test_create_incident_with_custom_date():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload = get_valid_incident_payload()
+        payload["title"] = "Incidente Retroativo"
+        payload["created_at"] = "2026-10-12"
+        create_res = await client.post("/api/v1/incidents", json=payload)
+
+        assert create_res.status_code == 201
+        created_data = create_res.json()
+        assert created_data["created_at"].startswith("2026-10-12")
+
+        filter_res = await client.get(
+            "/api/v1/incidents?date_from=2026-10-12&date_to=2026-10-12"
+        )
+        assert filter_res.status_code == 200
+        assert filter_res.json()["total"] == 1
+        assert filter_res.json()["items"][0]["title"] == "Incidente Retroativo"
