@@ -2,6 +2,7 @@ import {
 	ArrowLeft,
 	CheckCircle2,
 	HelpCircle,
+	Loader2,
 	Pencil,
 	RotateCcw,
 	UserCheck,
@@ -48,6 +49,9 @@ export function DetailPanel({
 	const updateStatusMutation = useUpdateIncidentStatus();
 	const [notes, setNotes] = useState("");
 	const [actionError, setActionError] = useState<string | null>(null);
+	const [pendingStatus, setPendingStatus] = useState<IncidentStatus | null>(
+		null,
+	);
 
 	if (!incidentId) {
 		return (
@@ -93,6 +97,7 @@ export function DetailPanel({
 	const handleStatusChange = async (newStatus: IncidentStatus) => {
 		if (incident.status === newStatus) return;
 		setActionError(null);
+		setPendingStatus(newStatus);
 
 		try {
 			await updateStatusMutation.mutateAsync({
@@ -127,6 +132,8 @@ export function DetailPanel({
 			} else {
 				setActionError(err?.message || "Erro ao atualizar status do chamado.");
 			}
+		} finally {
+			setPendingStatus(null);
 		}
 	};
 
@@ -271,8 +278,17 @@ export function DetailPanel({
 							onClick={() => handleStatusChange("Aberto")}
 							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60 dark:hover:bg-amber-900/50 dark:hover:border-amber-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							<RotateCcw className="w-3.5 h-3.5 shrink-0" />
-							<span>Reabrir Chamado</span>
+							{updateStatusMutation.isPending && pendingStatus === "Aberto" ? (
+								<>
+									<Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+									<span>Reabrindo...</span>
+								</>
+							) : (
+								<>
+									<RotateCcw className="w-3.5 h-3.5 shrink-0" />
+									<span>Reabrir Chamado</span>
+								</>
+							)}
 						</button>
 						<button
 							type="button"
@@ -283,8 +299,18 @@ export function DetailPanel({
 							onClick={() => handleStatusChange("Em Investigação")}
 							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/60 dark:hover:bg-blue-900/50 dark:hover:border-blue-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							<UserCheck className="w-3.5 h-3.5 shrink-0" />
-							<span>Assumir Investigação</span>
+							{updateStatusMutation.isPending &&
+							pendingStatus === "Em Investigação" ? (
+								<>
+									<Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+									<span>Assumindo...</span>
+								</>
+							) : (
+								<>
+									<UserCheck className="w-3.5 h-3.5 shrink-0" />
+									<span>Assumir Investigação</span>
+								</>
+							)}
 						</button>
 						<button
 							type="button"
@@ -294,8 +320,17 @@ export function DetailPanel({
 							onClick={() => handleStatusChange("Fechado")}
 							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60 dark:hover:bg-emerald-900/50 dark:hover:border-emerald-800 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-							<span>Fechar Chamado</span>
+							{updateStatusMutation.isPending && pendingStatus === "Fechado" ? (
+								<>
+									<Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+									<span>Fechando...</span>
+								</>
+							) : (
+								<>
+									<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+									<span>Fechar Chamado</span>
+								</>
+							)}
 						</button>
 						<button
 							type="button"
@@ -306,8 +341,18 @@ export function DetailPanel({
 							onClick={() => handleStatusChange("Inconclusivo")}
 							className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded text-xs font-medium border transition-colors bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-200 hover:border-zinc-300 dark:bg-[#18181b] dark:text-zinc-300 dark:border-[#27272a] dark:hover:bg-[#27272a] dark:hover:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
 						>
-							<HelpCircle className="w-3.5 h-3.5 shrink-0" />
-							<span>Inconclusivo</span>
+							{updateStatusMutation.isPending &&
+							pendingStatus === "Inconclusivo" ? (
+								<>
+									<Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+									<span>Registrando...</span>
+								</>
+							) : (
+								<>
+									<HelpCircle className="w-3.5 h-3.5 shrink-0" />
+									<span>Inconclusivo</span>
+								</>
+							)}
 						</button>
 					</div>
 				</div>
