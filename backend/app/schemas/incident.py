@@ -49,7 +49,8 @@ class IncidentCreate(IncidentBase):
 
 
 class IncidentUpdate(IncidentBase):
-    expected_version: int = Field(
+    expected_version: int | None = Field(
+        default=None,
         ge=1,
         validation_alias=AliasChoices("expected_version", "version"),
     )
@@ -59,7 +60,8 @@ class IncidentUpdate(IncidentBase):
 
 class IncidentStatusUpdate(BaseModel):
     status: IncidentStatus
-    expected_version: int = Field(
+    expected_version: int | None = Field(
+        default=None,
         ge=1,
         validation_alias=AliasChoices("expected_version", "version"),
     )
