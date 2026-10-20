@@ -189,4 +189,16 @@ describe("CreateIncidentModal", () => {
 			expect(screen.getByText("Erro de banco de dados")).toBeInTheDocument();
 		});
 	});
+
+	it("triggers showPicker when date input is clicked", () => {
+		const showPickerMock = vi.fn();
+		renderModal();
+
+		const dateInput =
+			screen.getByLabelText<HTMLInputElement>(/Data da Ocorrência/i);
+		dateInput.showPicker = showPickerMock;
+
+		fireEvent.click(dateInput);
+		expect(showPickerMock).toHaveBeenCalledTimes(1);
+	});
 });
