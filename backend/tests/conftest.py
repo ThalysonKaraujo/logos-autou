@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 import pytest
 from sqlalchemy import delete, func, select
 
-from app.core.database import AsyncSessionLocal, engine
+from app.core.database import AsyncSessionLocal, Base, engine
 from app.core.seed import seed_incidents
 from app.models.incident import Incident
 
@@ -24,6 +24,9 @@ async def _restore_seed_data() -> None:
 async def cleanup_db() -> AsyncGenerator[None, None]:
     global _had_initial_data
     await engine.dispose()
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as session:
         if _had_initial_data is None:
