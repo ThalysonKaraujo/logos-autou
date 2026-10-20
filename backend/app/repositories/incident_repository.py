@@ -133,7 +133,7 @@ class IncidentRepository:
                 status=new_status,
                 assigned_to=None if new_status == "Aberto" else analyst_name,
                 version=Incident.version + 1,
-                updated_at=func.now(),
+                updated_at=datetime.now(UTC),
             )
         )
         result = await self.db.execute(statement)
@@ -178,7 +178,7 @@ class IncidentRepository:
                 driver_name=driver_name,
                 assigned_to=analyst_name,
                 version=Incident.version + 1,
-                updated_at=func.now(),
+                updated_at=datetime.now(UTC),
             )
         )
         result = await self.db.execute(statement)

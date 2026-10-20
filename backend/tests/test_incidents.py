@@ -432,6 +432,12 @@ async def test_update_incident_status_fails_on_stale_version_conflict():
             conflict_data["message"]
             == "Conflito de versão: este incidente já foi atualizado por outro operador"
         )
+        assert conflict_data["details"] is not None
+        assert conflict_data["details"]["expected_version"] == 1
+        assert conflict_data["details"]["current_version"] == 2
+        assert conflict_data["details"]["server_state"]["status"] == "Em Investigação"
+        assert conflict_data["details"]["server_state"]["version"] == 2
+        assert conflict_data["details"]["server_state"]["assigned_to"] == "Mariana Silva"
 
         current_state = await client.get(f"/api/v1/incidents/{incident_id}")
         current_data = current_state.json()
@@ -605,6 +611,86 @@ async def test_update_incident_returns_409_on_version_conflict():
             },
         )
         assert conflict_response.status_code == 409
+        conflict_data = conflict_response.json()
+        assert conflict_data["details"] is not None
+        assert conflict_data["details"]["expected_version"] == 1
+        assert conflict_data["details"]["current_version"] == 2
+        assert conflict_data["details"]["server_state"]["status"] == "Em Investigação"
+        assert conflict_data["details"]["server_state"]["version"] == 2
+
+
+@pytest.mark.asyncio
+async def test_get_incident_by_id_returns_etag_header():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_res = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_res.json()["id"]
+
+        get_res = await client.get(f"/api/v1/incidents/{incident_id}")
+        assert get_res.status_code == 200
+        assert get_res.headers.get("etag") == '"1"'
+
+
+@pytest.mark.asyncio
+async def test_update_incident_status_supports_if_match_and_returns_etag():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_res = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_res.json()["id"]
+
+        update_res = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            headers={"If-Match": '"1"'},
+            json={
+                "status": "Em Investigação",
+                "analyst_name": "Mariana Silva",
+            },
+        )
+        assert update_res.status_code == 200
+        assert update_res.headers.get("etag") == '"2"'
+        assert update_res.json()["version"] == 2
+
+        conflict_res = await client.patch(
+            f"/api/v1/incidents/{incident_id}/status",
+            headers={"If-Match": '"1"'},
+            json={
+                "status": "Fechado",
+                "analyst_name": "Carlos Mendes",
+            },
+        )
+        assert conflict_res.status_code == 409
+        conflict_data = conflict_res.json()
+        assert conflict_data["details"]["expected_version"] == 1
+        assert conflict_data["details"]["current_version"] == 2
+        assert conflict_data["details"]["server_state"]["status"] == "Em Investigação"
+
+
+@pytest.mark.asyncio
+async def test_update_incident_supports_if_match_and_returns_etag():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        create_res = await client.post(
+            "/api/v1/incidents", json=get_valid_incident_payload()
+        )
+        incident_id = create_res.json()["id"]
+
+        update_res = await client.put(
+            f"/api/v1/incidents/{incident_id}",
+            headers={"If-Match": "1"},
+            json={
+                **get_valid_incident_payload(),
+                "title": "Novo Título Atualizado",
+                "analyst_name": "Mariana Silva",
+            },
+        )
+        assert update_res.status_code == 200
+        assert update_res.headers.get("etag") == '"2"'
+        assert update_res.json()["title"] == "Novo Título Atualizado"
+        assert update_res.json()["version"] == 2
 
 
 @pytest.mark.asyncio

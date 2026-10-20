@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -96,6 +96,21 @@ async def list_incidents_endpoint(
     )
 
 
+def parse_if_match_version(
+    if_match: str | None, body_version: int | None
+) -> int | None:
+    if if_match is not None and if_match.strip() != "":
+        cleaned = if_match.strip().strip('"').strip("'")
+        try:
+            return int(cleaned)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Header If-Match deve conter uma versão inteira válida",
+            )
+    return body_version
+
+
 @router.get(
     "/{incident_id}",
     response_model=IncidentDetailResponse,
@@ -115,8 +130,10 @@ async def list_incidents_endpoint(
 async def get_incident_by_id_endpoint(
     incident_id: UUID,
     service: IncidentServiceDep,
+    response: Response,
 ) -> IncidentDetailResponse:
     incident = await service.get_incident_by_id(incident_id=incident_id)
+    response.headers["ETag"] = f'"{incident.version}"'
     return IncidentDetailResponse.model_validate(incident)
 
 
@@ -144,8 +161,22 @@ async def update_incident_endpoint(
     incident_id: UUID,
     payload: IncidentUpdate,
     service: IncidentServiceDep,
+    response: Response,
+    if_match: Annotated[
+        str | None,
+        Header(
+            alias="If-Match",
+            description="Versão esperada do recurso para controle de concorrência otimista",
+        ),
+    ] = None,
 ) -> IncidentDetailResponse:
-    incident = await service.update_incident(incident_id=incident_id, payload=payload)
+    expected_version = parse_if_match_version(if_match, payload.expected_version)
+    incident = await service.update_incident(
+        incident_id=incident_id,
+        payload=payload,
+        expected_version=expected_version,
+    )
+    response.headers["ETag"] = f'"{incident.version}"'
     return IncidentDetailResponse.model_validate(incident)
 
 
@@ -173,8 +204,20 @@ async def update_incident_status_endpoint(
     incident_id: UUID,
     payload: IncidentStatusUpdate,
     service: IncidentServiceDep,
+    response: Response,
+    if_match: Annotated[
+        str | None,
+        Header(
+            alias="If-Match",
+            description="Versão esperada do recurso para controle de concorrência otimista",
+        ),
+    ] = None,
 ) -> IncidentDetailResponse:
+    expected_version = parse_if_match_version(if_match, payload.expected_version)
     incident = await service.update_incident_status(
-        incident_id=incident_id, payload=payload
+        incident_id=incident_id,
+        payload=payload,
+        expected_version=expected_version,
     )
+    response.headers["ETag"] = f'"{incident.version}"'
     return IncidentDetailResponse.model_validate(incident)

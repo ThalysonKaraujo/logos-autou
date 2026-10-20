@@ -80,9 +80,13 @@ export const useUpdateIncidentStatus = () => {
 
 	return useMutation({
 		mutationFn: async ({ incidentId, payload }: UpdateStatusVariables) => {
+			const version = payload.expected_version ?? payload.version;
 			const response = await apiClient.patch<IncidentDetail>(
 				`/incidents/${incidentId}/status`,
 				payload,
+				{
+					headers: version ? { "If-Match": `"${version}"` } : undefined,
+				},
 			);
 			return response.data;
 		},
@@ -111,9 +115,13 @@ export const useUpdateIncident = () => {
 
 	return useMutation({
 		mutationFn: async ({ incidentId, payload }: UpdateIncidentVariables) => {
+			const version = payload.expected_version ?? payload.version;
 			const response = await apiClient.put<IncidentDetail>(
 				`/incidents/${incidentId}`,
 				payload,
+				{
+					headers: version ? { "If-Match": `"${version}"` } : undefined,
+				},
 			);
 			return response.data;
 		},

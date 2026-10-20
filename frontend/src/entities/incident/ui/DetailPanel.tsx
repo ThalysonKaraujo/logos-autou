@@ -22,7 +22,18 @@ import { CriticalityDot, IncidentSkeleton, PlateBadge } from "@/shared/ui";
 export interface DetailPanelProps {
 	incidentId: string | null;
 	onBackToList?: () => void;
-	onConflictDetected?: (requestId: string | null) => void;
+	onConflictDetected?: (
+		requestId: string | null,
+		conflictData?: {
+			expected_version?: number;
+			current_version?: number;
+			server_state?: IncidentDetail | null;
+		} | null,
+		attempted?: {
+			status?: string;
+			notes?: string | null;
+		} | null,
+	) => void;
 	onEditIncident?: (incident: IncidentDetail) => void;
 }
 
@@ -100,9 +111,19 @@ export function DetailPanel({
 				status?: number;
 				requestId?: string | null;
 				message?: string;
+				data?: {
+					details?: {
+						expected_version?: number;
+						current_version?: number;
+						server_state?: IncidentDetail | null;
+					};
+				};
 			};
 			if (err?.status === 409) {
-				onConflictDetected?.(err.requestId || null);
+				onConflictDetected?.(err.requestId || null, err.data?.details || null, {
+					status: newStatus,
+					notes: notes.trim() || null,
+				});
 			} else {
 				setActionError(err?.message || "Erro ao atualizar status do chamado.");
 			}

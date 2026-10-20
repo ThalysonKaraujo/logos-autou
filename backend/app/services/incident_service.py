@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, time
+from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -22,6 +23,26 @@ def _resolve_created_at(value: date | datetime | None) -> datetime | None:
     if isinstance(value, datetime):
         return value if value.tzinfo else value.replace(tzinfo=UTC)
     return datetime.combine(value, time(12, 0), tzinfo=UTC)
+
+
+def _format_incident_state(incident: Incident | None) -> dict[str, Any] | None:
+    if not incident:
+        return None
+    return {
+        "id": str(incident.id),
+        "title": incident.title,
+        "description": incident.description,
+        "category": incident.category,
+        "criticality": incident.criticality,
+        "status": incident.status,
+        "location": incident.location,
+        "truck_plate": incident.truck_plate,
+        "driver_name": incident.driver_name,
+        "assigned_to": incident.assigned_to,
+        "version": incident.version,
+        "created_at": incident.created_at.isoformat() if incident.created_at else None,
+        "updated_at": incident.updated_at.isoformat() if incident.updated_at else None,
+    }
 
 
 class IncidentService:
@@ -89,8 +110,20 @@ class IncidentService:
         )
 
     async def update_incident_status(
-        self, incident_id: UUID, payload: IncidentStatusUpdate
+        self,
+        incident_id: UUID,
+        payload: IncidentStatusUpdate,
+        expected_version: int | None = None,
     ) -> Incident:
+        target_version = (
+            expected_version if expected_version is not None else payload.expected_version
+        )
+        if target_version is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A versão esperada do incidente deve ser informada via header If-Match ou no campo expected_version",
+            )
+
         incident = await self.get_incident_by_id(incident_id=incident_id)
 
         if incident.status == payload.status.value:
@@ -109,23 +142,43 @@ class IncidentService:
 
         updated_incident = await self.repository.update_status_with_occ(
             incident_id=incident_id,
-            expected_version=payload.expected_version,
+            expected_version=target_version,
             new_status=payload.status.value,
             analyst_name=payload.analyst_name,
             history_entry=history_entry,
         )
 
         if updated_incident is None:
+            latest = await self.repository.get_by_id(incident_id=incident_id)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Conflito de versão: este incidente já foi atualizado por outro operador",
+                detail={
+                    "message": "Conflito de versão: este incidente já foi atualizado por outro operador",
+                    "details": {
+                        "expected_version": target_version,
+                        "current_version": latest.version if latest else None,
+                        "server_state": _format_incident_state(latest),
+                    },
+                },
             )
 
         return updated_incident
 
     async def update_incident(
-        self, incident_id: UUID, payload: IncidentUpdate
+        self,
+        incident_id: UUID,
+        payload: IncidentUpdate,
+        expected_version: int | None = None,
     ) -> Incident:
+        target_version = (
+            expected_version if expected_version is not None else payload.expected_version
+        )
+        if target_version is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A versão esperada do incidente deve ser informada via header If-Match ou no campo expected_version",
+            )
+
         incident = await self.get_incident_by_id(incident_id=incident_id)
 
         changes: list[str] = []
@@ -171,7 +224,7 @@ class IncidentService:
 
         updated_incident = await self.repository.update_incident_with_occ(
             incident_id=incident_id,
-            expected_version=payload.expected_version,
+            expected_version=target_version,
             title=payload.title,
             description=payload.description,
             category=payload.category.value,
@@ -184,9 +237,17 @@ class IncidentService:
         )
 
         if updated_incident is None:
+            latest = await self.repository.get_by_id(incident_id=incident_id)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Conflito de versão: este incidente já foi atualizado por outro operador",
+                detail={
+                    "message": "Conflito de versão: este incidente já foi atualizado por outro operador",
+                    "details": {
+                        "expected_version": target_version,
+                        "current_version": latest.version if latest else None,
+                        "server_state": _format_incident_state(latest),
+                    },
+                },
             )
 
         return updated_incident

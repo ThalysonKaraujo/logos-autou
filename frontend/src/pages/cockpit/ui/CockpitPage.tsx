@@ -5,6 +5,7 @@ import { TriageFilters } from "@/features/triage-filters";
 import { Topbar } from "@/widgets/topbar";
 import { useCockpitState } from "../model/useCockpitState";
 import { ConflictBanner } from "./ConflictBanner";
+import { ConflictModal } from "./ConflictModal";
 import { QueueSortSelect } from "./QueueSortSelect";
 
 export function CockpitPage() {
@@ -37,8 +38,10 @@ export function CockpitPage() {
 		nextPage,
 		prevPage,
 		occConflictTraceId,
+		activeConflict,
 		handleConflictDetected,
 		dismissConflict,
+		handleReloadLatest,
 		isCreateModalOpen,
 		openCreateModal,
 		closeCreateModal,
@@ -149,6 +152,17 @@ export function CockpitPage() {
 				isOpen={Boolean(editingIncident)}
 				onClose={closeEditModal}
 				onConflictDetected={handleConflictDetected}
+			/>
+
+			<ConflictModal
+				isOpen={Boolean(activeConflict)}
+				onClose={dismissConflict}
+				onReloadLatest={handleReloadLatest}
+				traceId={activeConflict?.traceId}
+				expectedVersion={activeConflict?.expectedVersion}
+				currentVersion={activeConflict?.currentVersion}
+				serverState={activeConflict?.serverState}
+				attemptedState={activeConflict?.attemptedState}
 			/>
 		</div>
 	);

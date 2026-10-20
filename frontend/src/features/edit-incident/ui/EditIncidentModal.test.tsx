@@ -133,7 +133,13 @@ describe("EditIncidentModal", () => {
 
 		await waitFor(() => {
 			expect(props.onClose).toHaveBeenCalledTimes(1);
-			expect(props.onConflictDetected).toHaveBeenCalledWith("req-conflict-99");
+			expect(props.onConflictDetected).toHaveBeenCalledWith(
+				"req-conflict-99",
+				null,
+				expect.objectContaining({
+					location: "BR-116, Km 215",
+				}),
+			);
 		});
 	});
 });
