@@ -173,18 +173,57 @@ describe("useCockpitState", () => {
 		expect(result.current.editingIncident).toBeNull();
 	});
 
-	it("manages occ conflict state", () => {
+	it("manages occ conflict state and active conflict details", () => {
 		const { wrapper } = createWrapper();
 		const { result } = renderHook(() => useCockpitState(), { wrapper });
 
+		const mockIncident: IncidentDetail = {
+			id: "inc-1",
+			title: "Incidente",
+			description: "Desc",
+			category: "Problema Mecânico",
+			criticality: "Baixa",
+			status: "Aberto",
+			location: "SP",
+			truck_plate: "ABC1D23",
+			driver_name: "Motorista",
+			assigned_to: null,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			version: 1,
+			history: [],
+		};
+
 		act(() => {
-			result.current.handleConflictDetected("req-abc-123");
+			result.current.handleConflictDetected(
+				"req-abc-123",
+				{
+					expected_version: 1,
+					current_version: 2,
+					server_state: mockIncident,
+				},
+				{
+					status: "Fechado",
+					notes: "Tentativa de fechar",
+				},
+			);
 		});
 		expect(result.current.occConflictTraceId).toBe("req-abc-123");
+		expect(result.current.activeConflict).toEqual({
+			traceId: "req-abc-123",
+			expectedVersion: 1,
+			currentVersion: 2,
+			serverState: mockIncident,
+			attemptedState: {
+				status: "Fechado",
+				notes: "Tentativa de fechar",
+			},
+		});
 
 		act(() => {
 			result.current.dismissConflict();
 		});
 		expect(result.current.occConflictTraceId).toBeNull();
+		expect(result.current.activeConflict).toBeNull();
 	});
 });
