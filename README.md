@@ -4,6 +4,17 @@ Plataforma de alta disponibilidade para monitoramento, triagem e resposta a inci
 
 ---
 
+## 🚀 Acesso Rápido aos Ambientes em Nuvem
+
+| Serviço | Plataforma | Link Direto | Status |
+| :--- | :--- | :--- | :---: |
+| **Cockpit Operacional (Frontend)** | Vercel | [logos-autou.vercel.app](https://logos-autou.vercel.app) | ![Vercel](https://img.shields.io/badge/Vercel-Online-brightgreen?logo=vercel) |
+| **API RESTful (Backend)** | Render | [logos-autou.onrender.com](https://logos-autou.onrender.com) | ![Render](https://img.shields.io/badge/Render-Online-brightgreen?logo=render) |
+| **Documentação Interativa (Swagger)** | Render | [/docs](https://logos-autou.onrender.com/docs) | ![OpenAPI](https://img.shields.io/badge/OpenAPI-v3.1-blue) |
+| **Documentação Técnica (ReDoc)** | Render | [/redoc](https://logos-autou.onrender.com/redoc) | ![ReDoc](https://img.shields.io/badge/ReDoc-Docs-blue) |
+
+---
+
 ## 1. Visão Geral & Contexto Operacional
 
 Em operações de transporte com milhares de veículos em rota, a comunicação descentralizada via aplicativos de mensagens instantâneas e planilhas paralelas gera pontos cegos graves: demora no reconhecimento de sinistros, falta de histórico confiável e decisões descoordenadas.
