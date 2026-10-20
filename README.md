@@ -27,30 +27,6 @@ O **Logos** atua como a camada central de inteligência da operação, transform
 
 A solução adota uma divisão arquitetural estrita entre frontend e backend, orientada a baixo acoplamento, previsibilidade de estado e facilidade de manutenção.
 
-```mermaid
-flowchart TD
-    subgraph Frontend["Frontend — Feature-Sliced Design v2.1"]
-        UI["UI Components (Puras / Visuais)"]
-        Hooks["Custom Hooks (model/use*.ts)"]
-        RQ["TanStack Query (Cache & Prefetch)"]
-        UI --> Hooks
-        Hooks --> RQ
-    end
-
-    subgraph Backend["Backend — Clean Architecture"]
-        API["Transporte HTTP / Endpoints (FastAPI)"]
-        Service["Serviços de Domínio (IncidentService)"]
-        Repo["Repositórios Assíncronos (IncidentRepository)"]
-        DB[(PostgreSQL / SQLite)]
-
-        API --> Service
-        Service --> Repo
-        Repo --> DB
-    end
-
-    RQ <-->|"JSON / REST (HTTP Async)"| API
-```
-
 ### Backend: Clean Architecture em Camadas
 
 O backend em **Python 3.12 (FastAPI)** estrutura suas responsabilidades sem misturar transporte HTTP, regras de negócio e acesso ao banco:
@@ -87,8 +63,8 @@ Em uma central onde dezenas de operadores atuam simultaneamente, o risco mais cr
 
 ### Como o OCC Funciona no Logos:
 
-1. **Versionamento Atômico**: Cada registro de incidente possui um campo inteiro `version` (iniciando em 1).
-2. **Checagem no Commit**: Ao despachar uma alteração de status ou edição, o cliente envia o `expected_version` que estava na tela:
+1. **Versionamento Atômico & ETag**: Cada registro de incidente possui um campo inteiro `version` (iniciando em 1), exposto nas respostas via header HTTP padrão `ETag: "<version>"`.
+2. **Checagem no Commit com `If-Match`**: Ao despachar uma alteração de status ou edição, o cliente transmite a versão esperada via header padrão `If-Match: "<version>"` (ou campo `expected_version` no corpo):
    ```sql
    UPDATE incidents
    SET status = :new_status,
@@ -96,9 +72,9 @@ Em uma central onde dezenas de operadores atuam simultaneamente, o risco mais cr
        updated_at = NOW()
    WHERE id = :incident_id AND version = :expected_version;
    ```
-3. **Detecção de Colisão**: Se outro analista atualizou o incidente uma fração de segundo antes, a `version` no banco já terá mudado. O `UPDATE` afeta 0 linhas.
-4. **Resposta Padronizada (RFC 7807)**: A API aborta a transação e responde imediatamente com `HTTP 409 Conflict`, acompanhada do `X-Request-ID` para rastreamento.
-5. **Resolução no Cliente**: O frontend intercepta o 409, ativa um banner de alerta visual destacando que o incidente acabou de ser atualizado por outro operador, e revalida os dados mais recentes em segundo plano sem perda de integridade.
+3. **Detecção de Colisão Sem Bloqueio**: Se outro analista atualizou o incidente uma fração de segundo antes, a `version` no banco já terá mudado. O `UPDATE` atômico afeta 0 linhas.
+4. **Resposta Padronizada com Estado Atual (HTTP 409)**: A API aborta a transação e responde com `HTTP 409 Conflict`, acompanhada do `X-Request-ID` e dos dados atuais do recurso no banco (`server_state`).
+5. **Resolução Visual no Cliente (Diff Modal)**: O frontend intercepta o 409 e abre o `ConflictModal`, apresentando um comparativo campo a campo (diff) entre a tentativa do operador e o que foi gravado pelo colega no servidor, além de permitir copiar as justificativas digitadas para a área de transferência com um clique antes de recarregar os dados.
 
 ### Trilha de Auditoria Imutável (*Audit Trail*)
 
@@ -115,17 +91,6 @@ Toda alteração de estado no Logos gera um registro imutável em `incident_hist
 Em centros operacionais e terminais logísticos, a conectividade pode oscilar severamente. O Logos foi desenhado para tolerar falhas de rede e latências elevadas sem perda de dados e sem travar a interface.
 
 ### Estratégia de Tolerância a Falhas e Quedas de Rede
-
-```mermaid
-flowchart LR
-    A[Ação do Operador] --> B{Conexão Ativa?}
-    B -- Sim --> C[Commit com OCC via HTTP]
-    B -- Não / Oscilando --> D[Captura em shared/api/client.ts]
-    D --> E[ApiError status 0: 'Sem conexão']
-    E --> F[Feedback Contextual no Card/Painel]
-    F --> G[Detecção de Retorno window.online]
-    G --> H[Revalidação Automática TanStack Query]
-```
 
 - **Persistência em Cache em Memória**: Com `staleTime: 5000` no TanStack Query, a tela nunca "apaga" ou quebra se a rede oscilar enquanto o analista lê uma ocorrência. Os dados permanecem visíveis e navegáveis.
 - **Retentativas Automáticas (`retry: 1`)**: Micro-instabilidades de conexão são absorvidas automaticamente com uma nova tentativa imediata antes de apresentar qualquer erro ao usuário.
@@ -261,25 +226,7 @@ O comando `python app/core/seed.py` popula o banco de dados com **100 incidentes
 
 ## 7. Garantia de Qualidade & Testes Automatizados
 
-O projeto adota uma política rigorosa de testes automatizados com abordagem TDD (Red ➜ Green ➜ Refactor), garantindo integridade das regras de negócio e prevenção de regressões tanto no backend quanto no frontend.
-
-```mermaid
-flowchart LR
-    subgraph BackendTests["Testes Backend (Pytest — 59 Testes)"]
-        B1["Rotas & Schemas Pydantic"]
-        B2["Ordenação, Paginação & Filtros"]
-        B3["Concorrência Otimista (OCC 409)"]
-        B4["Auditoria & Ciclo de Vida"]
-        B5["Rate Limiting & Headers IETF"]
-    end
-
-    subgraph FrontendTests["Testes Frontend (Vitest — 78 Testes)"]
-        F1["Componentes Apresentacionais"]
-        F2["Hooks de Estado (useCockpitState)"]
-        F3["TanStack Query & Cache"]
-        F4["Resiliência de Rede & Erros"]
-    end
-```
+O projeto adota uma política rigorosa de testes automatizados com abordagem TDD (Red ➜ Green ➜ Refactor), garantindo integridade das regras de negócio e prevenção de regressões tanto no backend quanto no frontend (**62 testes assíncronos no backend** e **83 testes no frontend**).
 
 ### Execução dos Testes
 
