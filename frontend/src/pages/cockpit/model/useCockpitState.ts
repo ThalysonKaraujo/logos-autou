@@ -35,6 +35,12 @@ export interface ActiveConflictState {
 	} | null;
 }
 
+export interface CockpitNotification {
+	type: "success" | "error" | "info";
+	title: string;
+	message?: string;
+}
+
 export function useCockpitState() {
 	const queryClient = useQueryClient();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -53,6 +59,9 @@ export function useCockpitState() {
 	);
 	const [activeConflict, setActiveConflict] =
 		useState<ActiveConflictState | null>(null);
+	const [notification, setNotification] = useState<CockpitNotification | null>(
+		null,
+	);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [editingIncident, setEditingIncident] = useState<IncidentDetail | null>(
 		null,
@@ -226,9 +235,30 @@ export function useCockpitState() {
 		setIsCreateModalOpen(false);
 	};
 
-	const handleCreateSuccess = (incident: { id: string }) => {
+	const showNotification = (
+		type: "success" | "error" | "info",
+		title: string,
+		message?: string,
+	) => {
+		setNotification({ type, title, message });
+	};
+
+	const dismissNotification = () => {
+		setNotification(null);
+	};
+
+	const handleCreateSuccess = (incident: {
+		id: string;
+		truck_plate?: string;
+		title?: string;
+	}) => {
 		setSelectedId(incident.id);
 		setIsCreateModalOpen(false);
+		const detail =
+			incident.truck_plate && incident.title
+				? `${incident.truck_plate} • ${incident.title}`
+				: undefined;
+		showNotification("success", "Chamado registrado com sucesso!", detail);
 	};
 
 	const openEditModal = (incident: IncidentDetail) => {
@@ -276,6 +306,9 @@ export function useCockpitState() {
 		handleConflictDetected,
 		dismissConflict,
 		handleReloadLatest,
+		notification,
+		showNotification,
+		dismissNotification,
 		isCreateModalOpen,
 		openCreateModal,
 		closeCreateModal,

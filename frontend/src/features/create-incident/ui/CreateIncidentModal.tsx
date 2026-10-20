@@ -1,3 +1,4 @@
+import { AlertCircle, Loader2 } from "lucide-react";
 import {
 	CREATE_CATEGORIES,
 	CREATE_CRITICALITIES,
@@ -78,8 +79,19 @@ export function CreateIncidentModal(props: CreateIncidentModalProps) {
 					className="p-4 sm:p-5 flex flex-col gap-3.5"
 				>
 					{submitError && (
-						<div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
-							{submitError}
+						<div
+							role="alert"
+							className="flex items-start gap-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-lg p-3 text-xs text-rose-800 dark:text-rose-200 animate-fade-in"
+						>
+							<AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+							<div className="flex-1 space-y-0.5">
+								<p className="font-semibold text-rose-900 dark:text-rose-100">
+									Falha ao registrar chamado
+								</p>
+								<p className="text-rose-700 dark:text-rose-300 leading-relaxed">
+									{submitError}
+								</p>
+							</div>
 						</div>
 					)}
 
@@ -215,7 +227,12 @@ export function CreateIncidentModal(props: CreateIncidentModalProps) {
 								required
 								value={incidentDate}
 								onChange={(e) => setIncidentDate(e.target.value)}
-								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
+								onClick={(e) => {
+									try {
+										e.currentTarget.showPicker?.();
+									} catch {}
+								}}
+								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none cursor-pointer transition-colors"
 							/>
 						</div>
 					</div>
@@ -271,9 +288,16 @@ export function CreateIncidentModal(props: CreateIncidentModalProps) {
 						<button
 							type="submit"
 							disabled={isPending}
-							className="px-4 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 transition-colors"
+							className="px-4 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 transition-colors inline-flex items-center gap-1.5 shadow-xs"
 						>
-							{isPending ? "Criando..." : "Criar Chamado"}
+							{isPending ? (
+								<>
+									<Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+									<span>Criando chamado...</span>
+								</>
+							) : (
+								<span>Criar Chamado</span>
+							)}
 						</button>
 					</footer>
 				</form>

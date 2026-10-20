@@ -226,7 +226,7 @@ O comando `python app/core/seed.py` popula o banco de dados com **100 incidentes
 
 ## 7. Garantia de Qualidade & Testes Automatizados
 
-O projeto adota uma política rigorosa de testes automatizados com abordagem TDD (Red ➜ Green ➜ Refactor), garantindo integridade das regras de negócio e prevenção de regressões tanto no backend quanto no frontend (**62 testes assíncronos no backend** e **84 testes no frontend**).
+O projeto adota uma política rigorosa de testes automatizados com abordagem TDD (Red ➜ Green ➜ Refactor), garantindo integridade das regras de negócio e prevenção de regressões tanto no backend quanto no frontend (**62 testes assíncronos no backend** e **92 testes no frontend**).
 
 ### Execução dos Testes
 
@@ -258,7 +258,7 @@ ruff check .
 No diretório `frontend/`:
 
 ```bash
-# Executa a suíte de testes unitários e de integração (84 testes)
+# Executa a suíte de testes unitários e de integração (92 testes)
 npm test -- --run
 
 # Executa a checagem de tipos estáticos do TypeScript

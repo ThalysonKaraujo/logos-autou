@@ -126,4 +126,16 @@ describe("TriageFilters", () => {
 		fireEvent.click(resetBtn);
 		expect(onResetFilters).toHaveBeenCalledTimes(1);
 	});
+
+	it("triggers showPicker when date input is clicked", () => {
+		const showPickerMock = vi.fn();
+		render(<TriageFilters {...defaultProps} />);
+
+		const dateFromInput =
+			screen.getByLabelText<HTMLInputElement>("Data inicial");
+		dateFromInput.showPicker = showPickerMock;
+
+		fireEvent.click(dateFromInput);
+		expect(showPickerMock).toHaveBeenCalledTimes(1);
+	});
 });
