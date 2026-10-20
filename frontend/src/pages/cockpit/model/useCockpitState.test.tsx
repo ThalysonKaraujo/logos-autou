@@ -226,4 +226,33 @@ describe("useCockpitState", () => {
 		expect(result.current.occConflictTraceId).toBeNull();
 		expect(result.current.activeConflict).toBeNull();
 	});
+
+	it("sets notification upon handleCreateSuccess and allows dismissNotification", () => {
+		const { wrapper } = createWrapper();
+		const { result } = renderHook(() => useCockpitState(), { wrapper });
+
+		expect(result.current.notification).toBeNull();
+
+		act(() => {
+			result.current.handleCreateSuccess({
+				id: "inc-new-123",
+				truck_plate: "LOG0A10",
+				title: "Pane de arrefecimento",
+			});
+		});
+
+		expect(result.current.selectedId).toBe("inc-new-123");
+		expect(result.current.isCreateModalOpen).toBe(false);
+		expect(result.current.notification).toEqual({
+			type: "success",
+			title: "Chamado registrado com sucesso!",
+			message: "LOG0A10 • Pane de arrefecimento",
+		});
+
+		act(() => {
+			result.current.dismissNotification();
+		});
+
+		expect(result.current.notification).toBeNull();
+	});
 });

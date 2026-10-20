@@ -154,4 +154,39 @@ describe("CreateIncidentModal", () => {
 		const requestBody = JSON.parse(fetchCall[1]?.body as string);
 		expect(requestBody.created_at).toBe("2026-10-12");
 	});
+
+	it("renders structured error alert when submission fails", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 500,
+			headers: new Headers({ "content-type": "application/json" }),
+			json: async () => ({ message: "Erro de banco de dados" }),
+		});
+
+		renderModal();
+
+		fireEvent.change(screen.getByLabelText(/Título/i), {
+			target: { value: "Pane de arrefecimento" },
+		});
+		fireEvent.change(screen.getByLabelText(/Placa/i), {
+			target: { value: "LOG1A23" },
+		});
+		fireEvent.change(screen.getByLabelText(/Localização/i), {
+			target: { value: "BR-101, Km 50" },
+		});
+		fireEvent.change(screen.getByLabelText(/Descrição/i), {
+			target: { value: "Superaquecimento na subida da serra" },
+		});
+
+		const submitButton = screen.getByRole("button", { name: /Criar Chamado/i });
+		fireEvent.click(submitButton);
+
+		await waitFor(() => {
+			expect(screen.getByRole("alert")).toBeInTheDocument();
+			expect(
+				screen.getByText("Falha ao registrar chamado"),
+			).toBeInTheDocument();
+			expect(screen.getByText("Erro de banco de dados")).toBeInTheDocument();
+		});
+	});
 });
