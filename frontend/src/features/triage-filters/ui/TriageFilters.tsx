@@ -204,7 +204,12 @@ export function TriageFilters(props: TriageFiltersProps) {
 							type="date"
 							value={dateFrom}
 							onChange={(e) => handleDateFromChange(e.target.value)}
-							className={`bg-zinc-50 dark:bg-[#18181b] border rounded px-2 py-1 text-xs text-zinc-800 dark:text-zinc-300 outline-none ${
+							onClick={(e) => {
+								try {
+									e.currentTarget.showPicker?.();
+								} catch {}
+							}}
+							className={`bg-zinc-50 dark:bg-[#18181b] border rounded px-2 py-1 text-xs text-zinc-800 dark:text-zinc-300 outline-none cursor-pointer ${
 								hasDateError
 									? "border-rose-500 dark:border-rose-500"
 									: "border-zinc-200 dark:border-[#27272a]"
@@ -216,7 +221,12 @@ export function TriageFilters(props: TriageFiltersProps) {
 							type="date"
 							value={dateTo}
 							onChange={(e) => handleDateToChange(e.target.value)}
-							className={`bg-zinc-50 dark:bg-[#18181b] border rounded px-2 py-1 text-xs text-zinc-800 dark:text-zinc-300 outline-none ${
+							onClick={(e) => {
+								try {
+									e.currentTarget.showPicker?.();
+								} catch {}
+							}}
+							className={`bg-zinc-50 dark:bg-[#18181b] border rounded px-2 py-1 text-xs text-zinc-800 dark:text-zinc-300 outline-none cursor-pointer ${
 								hasDateError
 									? "border-rose-500 dark:border-rose-500"
 									: "border-zinc-200 dark:border-[#27272a]"

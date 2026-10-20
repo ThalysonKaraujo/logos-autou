@@ -227,7 +227,12 @@ export function CreateIncidentModal(props: CreateIncidentModalProps) {
 								required
 								value={incidentDate}
 								onChange={(e) => setIncidentDate(e.target.value)}
-								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none transition-colors"
+								onClick={(e) => {
+									try {
+										e.currentTarget.showPicker?.();
+									} catch {}
+								}}
+								className="bg-zinc-50 dark:bg-[#18181b] border border-zinc-200 dark:border-[#27272a] focus:border-zinc-400 dark:focus:border-zinc-500 rounded px-2.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 outline-none cursor-pointer transition-colors"
 							/>
 						</div>
 					</div>
