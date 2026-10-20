@@ -2,6 +2,7 @@ import { DetailPanel, IncidentList } from "@/entities/incident/ui";
 import { CreateIncidentModal } from "@/features/create-incident";
 import { EditIncidentModal } from "@/features/edit-incident";
 import { TriageFilters } from "@/features/triage-filters";
+import { NotificationToast } from "@/shared/ui";
 import { Topbar } from "@/widgets/topbar";
 import { useCockpitState } from "../model/useCockpitState";
 import { ConflictBanner } from "./ConflictBanner";
@@ -42,6 +43,8 @@ export function CockpitPage() {
 		handleConflictDetected,
 		dismissConflict,
 		handleReloadLatest,
+		notification,
+		dismissNotification,
 		isCreateModalOpen,
 		openCreateModal,
 		closeCreateModal,
@@ -164,6 +167,15 @@ export function CockpitPage() {
 				serverState={activeConflict?.serverState}
 				attemptedState={activeConflict?.attemptedState}
 			/>
+
+			{notification && (
+				<NotificationToast
+					type={notification.type}
+					title={notification.title}
+					message={notification.message}
+					onClose={dismissNotification}
+				/>
+			)}
 		</div>
 	);
 }

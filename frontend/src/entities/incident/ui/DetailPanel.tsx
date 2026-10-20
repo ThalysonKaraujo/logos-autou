@@ -1,4 +1,5 @@
 import {
+	AlertCircle,
 	ArrowLeft,
 	CheckCircle2,
 	HelpCircle,
@@ -264,8 +265,12 @@ export function DetailPanel({
 					/>
 
 					{actionError && (
-						<div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded px-2.5 py-1.5 text-xs text-rose-700 dark:text-rose-300">
-							{actionError}
+						<div
+							role="alert"
+							className="flex items-start gap-2 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-md p-2.5 text-xs text-rose-800 dark:text-rose-200 animate-fade-in"
+						>
+							<AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+							<span className="leading-relaxed">{actionError}</span>
 						</div>
 					)}
 
