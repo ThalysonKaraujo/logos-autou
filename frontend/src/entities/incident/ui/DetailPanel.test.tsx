@@ -159,4 +159,71 @@ describe("DetailPanel", () => {
 		fireEvent.click(backButton);
 		expect(onBackToList).toHaveBeenCalledTimes(1);
 	});
+
+	it("displays loading state and spinner on the specific action button while mutation is pending", async () => {
+		let resolveMutation: (val: unknown) => void = () => {};
+		const mutationPromise = new Promise((resolve) => {
+			resolveMutation = resolve;
+		});
+
+		globalThis.fetch = vi
+			.fn()
+			.mockImplementation((url: string, init?: RequestInit) => {
+				if (
+					typeof url === "string" &&
+					url.endsWith("/api/v1/incidents/inc-1") &&
+					(!init || init.method === "GET")
+				) {
+					return Promise.resolve({
+						ok: true,
+						status: 200,
+						json: async () => ({ ...mockIncident, status: "Aberto" }),
+						headers: new Headers({ "content-type": "application/json" }),
+					} as Response);
+				}
+				if (
+					typeof url === "string" &&
+					url.endsWith("/api/v1/incidents/inc-1/status") &&
+					init?.method === "PATCH"
+				) {
+					return mutationPromise.then(
+						() =>
+							({
+								ok: true,
+								status: 200,
+								json: async () => ({
+									...mockIncident,
+									status: "Em Investigação",
+									version: 3,
+								}),
+								headers: new Headers({ "content-type": "application/json" }),
+							}) as Response,
+					);
+				}
+				return Promise.reject(new Error(`Unhandled URL: ${url}`));
+			});
+
+		renderComponent("inc-1");
+
+		const assumeButton = await screen.findByRole("button", {
+			name: /assumir investigação/i,
+		});
+		expect(assumeButton).toBeEnabled();
+
+		fireEvent.click(assumeButton);
+
+		await waitFor(() => {
+			expect(
+				screen.getByRole("button", { name: /assumindo/i }),
+			).toBeInTheDocument();
+		});
+
+		resolveMutation(null);
+
+		await waitFor(() => {
+			expect(
+				screen.queryByRole("button", { name: /assumindo/i }),
+			).not.toBeInTheDocument();
+		});
+	});
 });
