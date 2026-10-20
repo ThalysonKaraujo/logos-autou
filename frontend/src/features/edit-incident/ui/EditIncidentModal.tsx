@@ -6,7 +6,20 @@ export interface EditIncidentModalProps {
 	incident: IncidentDetail | null;
 	isOpen: boolean;
 	onClose: () => void;
-	onConflictDetected?: (requestId: string | null) => void;
+	onConflictDetected?: (
+		requestId: string | null,
+		conflictData?: {
+			expected_version?: number;
+			current_version?: number;
+			server_state?: IncidentDetail | null;
+		} | null,
+		attempted?: {
+			title?: string;
+			truck_plate?: string;
+			driver_name?: string | null;
+			notes?: string | null;
+		} | null,
+	) => void;
 }
 
 export function EditIncidentModal(props: EditIncidentModalProps) {

@@ -6,6 +6,7 @@ import {
 	useIncidents,
 } from "@/entities/incident/api";
 import type {
+	Incident,
 	IncidentCategory,
 	IncidentCriticality,
 	IncidentDetail,
@@ -15,6 +16,24 @@ import type {
 } from "@/entities/incident/model/types";
 import { type DatePreset, isValidDateRange } from "@/features/triage-filters";
 import { PAGE_SIZE } from "./constants";
+
+export interface ActiveConflictState {
+	traceId: string | null;
+	expectedVersion?: number | null;
+	currentVersion?: number | null;
+	serverState?: IncidentDetail | Incident | null;
+	attemptedState?: {
+		title?: string;
+		description?: string;
+		category?: string;
+		criticality?: string;
+		status?: string;
+		location?: string;
+		truck_plate?: string;
+		driver_name?: string | null;
+		notes?: string | null;
+	} | null;
+}
 
 export function useCockpitState() {
 	const queryClient = useQueryClient();
@@ -32,6 +51,8 @@ export function useCockpitState() {
 	const [occConflictTraceId, setOccConflictTraceId] = useState<string | null>(
 		null,
 	);
+	const [activeConflict, setActiveConflict] =
+		useState<ActiveConflictState | null>(null);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [editingIncident, setEditingIncident] = useState<IncidentDetail | null>(
 		null,
@@ -156,12 +177,37 @@ export function useCockpitState() {
 		}
 	}, [page, totalPages, filters, queryClient]);
 
-	const handleConflictDetected = (traceId?: string | null) => {
-		setOccConflictTraceId(traceId || "occ-detected");
+	const handleConflictDetected = (
+		traceId?: string | null,
+		conflictData?: {
+			expected_version?: number;
+			current_version?: number;
+			server_state?: IncidentDetail | Incident | null;
+		} | null,
+		attempted?: ActiveConflictState["attemptedState"],
+	) => {
+		const tid = traceId || "occ-detected";
+		setOccConflictTraceId(tid);
+		setActiveConflict({
+			traceId: tid,
+			expectedVersion: conflictData?.expected_version ?? null,
+			currentVersion:
+				conflictData?.current_version ??
+				conflictData?.server_state?.version ??
+				null,
+			serverState: conflictData?.server_state ?? null,
+			attemptedState: attempted ?? null,
+		});
 	};
 
 	const dismissConflict = () => {
 		setOccConflictTraceId(null);
+		setActiveConflict(null);
+	};
+
+	const handleReloadLatest = () => {
+		queryClient.invalidateQueries({ queryKey: incidentKeys.all });
+		dismissConflict();
 	};
 
 	const nextPage = () => {
@@ -226,8 +272,10 @@ export function useCockpitState() {
 		nextPage,
 		prevPage,
 		occConflictTraceId,
+		activeConflict,
 		handleConflictDetected,
 		dismissConflict,
+		handleReloadLatest,
 		isCreateModalOpen,
 		openCreateModal,
 		closeCreateModal,
