@@ -151,8 +151,8 @@ Para proteger a infraestrutura contra abusos, negação de serviço (DoS) e temp
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/ThalysonKaraujo/autou-logos.git
-   cd autou-logos
+   git clone https://github.com/ThalysonKaraujo/logos-autou.git
+   cd logos-autou
    ```
 
 2. Suba o banco de dados PostgreSQL:
