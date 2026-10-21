@@ -8,7 +8,7 @@ Plataforma de alta disponibilidade para monitoramento, triagem e resposta a inci
 
 | Recurso | Plataforma | Link Direto |
 | :--- | :--- | :--- |
-| **Vídeo de Demonstração (5 min)** | Google Drive | [Assistir Apresentação](https://drive.google.com/file/d/1j80D_dcWfeF0zFhmnvXvPOdjWAX10u6n/view?usp=sharing) |
+| **Vídeo de Demonstração (5 min)** | YouTube | [Assistir Apresentação](https://youtu.be/uqHMWZKA16U) |
 | **Cockpit Operacional (Frontend)** | Vercel | [logos-autou.vercel.app](https://logos-autou.vercel.app) |
 | **API RESTful (Backend)** | Render | [logos-autou.onrender.com](https://logos-autou.onrender.com) |
 | **Documentação Interativa (Swagger)** | Render | [/docs](https://logos-autou.onrender.com/docs) |
@@ -284,7 +284,7 @@ A plataforma está provisionada e disponível online para acesso imediato:
 
 | Serviço | Plataforma | URL / Acesso |
 | :--- | :--- | :--- |
-| **Vídeo de Demonstração (5 min)** | Google Drive | [https://drive.google.com/file/d/1j80D_dcWfeF0zFhmnvXvPOdjWAX10u6n/view?usp=sharing](https://drive.google.com/file/d/1j80D_dcWfeF0zFhmnvXvPOdjWAX10u6n/view?usp=sharing) |
+| **Vídeo de Demonstração (5 min)** | YouTube | [https://youtu.be/uqHMWZKA16U](https://youtu.be/uqHMWZKA16U) |
 | **Cockpit Operacional (Frontend)** | Vercel | [https://logos-autou.vercel.app](https://logos-autou.vercel.app) |
 | **API RESTful (Backend)** | Render | [https://logos-autou.onrender.com](https://logos-autou.onrender.com) |
 | **Documentação Interativa (Swagger)** | Render | [https://logos-autou.onrender.com/docs](https://logos-autou.onrender.com/docs) |
