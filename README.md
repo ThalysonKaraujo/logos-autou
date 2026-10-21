@@ -6,13 +6,13 @@ Plataforma de alta disponibilidade para monitoramento, triagem e resposta a inci
 
 ## Acesso Rápido aos Ambientes & Demonstração
 
-| Recurso | Plataforma | Link Direto | Status |
-| :--- | :--- | :--- | :---: |
-| **Vídeo de Demonstração (5 min)** | Google Drive | [Assistir Apresentação](https://drive.google.com/file/d/1j80D_dcWfeF0zFhmnvXvPOdjWAX10u6n/view?usp=sharing) | ![Vídeo](https://img.shields.io/badge/Vídeo-Disponível-red?logo=googledrive) |
-| **Cockpit Operacional (Frontend)** | Vercel | [logos-autou.vercel.app](https://logos-autou.vercel.app) | ![Vercel](https://img.shields.io/badge/Vercel-Online-brightgreen?logo=vercel) |
-| **API RESTful (Backend)** | Render | [logos-autou.onrender.com](https://logos-autou.onrender.com) | ![Render](https://img.shields.io/badge/Render-Online-brightgreen?logo=render) |
-| **Documentação Interativa (Swagger)** | Render | [/docs](https://logos-autou.onrender.com/docs) | ![OpenAPI](https://img.shields.io/badge/OpenAPI-v3.1-blue) |
-| **Documentação Técnica (ReDoc)** | Render | [/redoc](https://logos-autou.onrender.com/redoc) | ![ReDoc](https://img.shields.io/badge/ReDoc-Docs-blue) |
+| Recurso | Plataforma | Link Direto |
+| :--- | :--- | :--- |
+| **Vídeo de Demonstração (5 min)** | Google Drive | [Assistir Apresentação](https://drive.google.com/file/d/1j80D_dcWfeF0zFhmnvXvPOdjWAX10u6n/view?usp=sharing) |
+| **Cockpit Operacional (Frontend)** | Vercel | [logos-autou.vercel.app](https://logos-autou.vercel.app) |
+| **API RESTful (Backend)** | Render | [logos-autou.onrender.com](https://logos-autou.onrender.com) |
+| **Documentação Interativa (Swagger)** | Render | [/docs](https://logos-autou.onrender.com/docs) |
+| **Documentação Técnica (ReDoc)** | Render | [/redoc](https://logos-autou.onrender.com/redoc) |
 
 ---
 
